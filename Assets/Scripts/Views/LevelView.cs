@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
-namespace PiggyBomber
+namespace PiggerBomber
 {
     public sealed class LevelView : MonoBehaviour
     {

@@ -1,4 +1,4 @@
-﻿namespace PiggyBomber
+﻿namespace PiggerBomber
 {
     internal enum GameStates
     {

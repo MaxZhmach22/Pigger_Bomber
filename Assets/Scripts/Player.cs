@@ -2,7 +2,7 @@
 using Zenject;
 using UniRx;
 
-namespace PiggyBomber
+namespace PiggerBomber
 {
     internal class Player : MonoBehaviour
     {

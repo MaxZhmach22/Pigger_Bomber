@@ -1,7 +1,7 @@
 ﻿using ModestTree;
 using UnityEngine;
 
-namespace PiggyBomber
+namespace PiggerBomber
 {
     internal sealed class GameStateFactory
     {

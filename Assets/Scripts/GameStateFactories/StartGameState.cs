@@ -1,6 +1,6 @@
 ﻿using Zenject;
 
-namespace PiggyBomber
+namespace PiggerBomber
 {
     internal sealed class StartGameState : GameState
     {

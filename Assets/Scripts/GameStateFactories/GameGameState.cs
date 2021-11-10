@@ -1,7 +1,7 @@
 ﻿using System;
 using Zenject;
 
-namespace PiggyBomber
+namespace PiggerBomber
 {
     internal sealed class GameGameState : GameState
     {

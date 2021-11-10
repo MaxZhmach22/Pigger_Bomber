@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using Zenject;
 
-namespace PiggyBomber
+namespace PiggerBomber
 {
     class PlayerMovementController : BaseController, ITickable
     {

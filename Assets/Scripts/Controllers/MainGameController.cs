@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Zenject;
 
-namespace PiggyBomber
+namespace PiggerBomber
 {
     internal sealed class MainGameController : BaseController
     {

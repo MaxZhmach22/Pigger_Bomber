@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using Zenject;
 
-namespace PiggyBomber
+namespace PiggerBomber
 {
     public class Installer : MonoInstaller
     {

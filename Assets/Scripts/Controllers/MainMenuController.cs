@@ -1,7 +1,7 @@
 ﻿using Zenject;
 using UniRx;
 
-namespace PiggyBomber
+namespace PiggerBomber
 {
     internal sealed class MainMenuController : BaseController
     {
