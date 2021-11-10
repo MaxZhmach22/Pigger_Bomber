@@ -1,35 +1,34 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 using Zenject;
 
 namespace PiggerBomber
 {
     class PlayerMovementController : BaseController, ITickable
     {
+        private readonly IGridController _gridController;
         private readonly DynamicJoystick _dynamicJoystick;
         private readonly Player _player;
-        [Inject(Id = "Grid")] private Grid _grid;
 
         
         private float _playerStepSpeedTimer = 0.5f;
         private float _timer;
 
-        public PlayerMovementController(
+        public PlayerMovementController(IGridController gridController,
             DynamicJoystick dynamicJoystick,
            
             Player player)
         {
+            _gridController = gridController;
             _dynamicJoystick = dynamicJoystick;
             _player = player;
         }
 
         public override void Start()
         {
-            Debug.Log(_grid.cellLayout);
-            Vector3Int cellposition = _grid.WorldToCell(_grid.transform.position);
-            Debug.Log(cellposition);
+          
         }
+
         public override void Dispose()
         {
             Debug.Log($"{nameof(PlayerMovementController)} is Disposed");

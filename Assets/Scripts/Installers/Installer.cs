@@ -10,22 +10,46 @@ namespace PiggerBomber
         [SerializeField] private Player _player;
         [SerializeField] private DynamicJoystick _dynamicJoystick;
         [SerializeField] private MainMenuView _mainMenuView;
-        //[SerializeField] private LevelView _levelView;
+        [SerializeField] private LevelView _levelView;
+        [SerializeField] private GridControllerView _gridControllerView;
+        [SerializeField] private AppleTree _appleTree;
+        [SerializeField] private Apple _apple;
         [SerializeField] private Grid _grid;
 
         public override void InstallBindings()
         {
-            Container.Bind<Grid>().WithId("Grid").FromInstance(_grid).AsSingle();
             Container.Bind<Player>().FromInstance(_player).AsSingle();
             InstalGameStateFactories();
             InputSystemInstaller();
-            MainGameControllerBindings();
             MainMenuControllerBindings();
+            MainGameControllerBindings();
         }
 
         private void MainGameControllerBindings()
         {
+            var parentObj = new GameObject("GridView");
+            Container.Bind<IGridController>().To<GridController>().WhenInjectedInto<PlayerMovementController>();
             Container.BindInterfacesAndSelfTo<PlayerMovementController>().AsSingle();
+            Container.Bind<GridController>().AsCached();
+            Container.Bind<IGridController>().To<GridController>().WhenInjectedInto<TreesViewController>();
+            Container.Bind<TreesViewController>().AsCached();
+            Container.Bind<AppleTree>().FromInstance(_appleTree).AsSingle();
+
+            Container.Bind<ITreesViewController>().To<TreesViewController>().WhenInjectedInto<ApplesController>();
+            Container.BindInterfacesAndSelfTo<ApplesController>().AsSingle();
+            Container.Bind<Apple>().FromInstance(_apple).AsSingle();
+
+            var gridControllerView = Container.InstantiatePrefabForComponent<GridControllerView>(
+               _gridControllerView, parentObj.transform);
+            Container.Bind<GridControllerView>().FromInstance(gridControllerView).AsSingle();
+            var grid = Container.InstantiatePrefabForComponent<Grid>(
+              _grid, parentObj.transform);
+            Container.Bind<Grid>().FromInstance(grid).AsSingle();
+            var levelView = Container.InstantiatePrefabForComponent<LevelView>(
+               _levelView, new GameObject("LevelView").transform);
+            Container.Bind<LevelView>().FromInstance(levelView).AsSingle();
+            var gridStatView = Container.InstantiatePrefabForComponent<Grid>(
+              _grid, parentObj.transform);
         }
 
         private void InputSystemInstaller()

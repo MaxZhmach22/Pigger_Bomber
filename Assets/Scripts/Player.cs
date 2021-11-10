@@ -6,6 +6,7 @@ namespace PiggerBomber
 {
     internal class Player : MonoBehaviour
     {
+        
         public Subject<Collision> CollisionGameObject = new Subject<Collision>();
 
         private GameState _state;
