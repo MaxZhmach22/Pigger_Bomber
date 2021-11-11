@@ -4,6 +4,6 @@ namespace PiggerBomber
 {
     internal interface IGridController
     {
-        GameObject[,] GridArray { get; }
+        GameObject[,] CurrentGridArray { get; }
     }
 }

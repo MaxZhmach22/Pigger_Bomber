@@ -3,28 +3,28 @@ using UnityEngine;
 
 namespace PiggerBomber
 {
-    internal sealed class DogEnemy : BaseEnemy
+    internal sealed class HumanEnemy : BaseEnemy
     {
         private SpriteRenderer _spriteRenderer;
         private SpriteStates _currentState;
+        private Collider2D _collider;
+        
         public bool IsDirty => _isDirty;
         private bool _isDirty;
+        public bool SeePlayer => _seePlayer;
+        private bool _seePlayer;
+
 
         private void Start()
         {
             _spriteRenderer = GetComponent<SpriteRenderer>();
             _currentState = SpriteStates.Common;
+            _collider = GetComponent<Collider2D>();
         }
 
         public void SeePalyer()
         {
             _currentState = SpriteStates.Angry;
-        }
-
-        public override void GetDirty()
-        {
-            _isDirty = true;
-            _currentState = SpriteStates.Dirty;
         }
 
         public float SetSpeed()
@@ -39,6 +39,11 @@ namespace PiggerBomber
                     return DirtyWalkingSpeed;
             }
             return CommonWalkingSpeed;
+        }
+
+        public override void GetDirty()
+        {
+            throw new System.NotImplementedException();
         }
 
         protected override void SetSprites(Directions directions)
@@ -76,6 +81,24 @@ namespace PiggerBomber
                 case Directions.Left:
                     _spriteRenderer.sprite = spritesList[3];
                     break;
+            }
+        }
+
+        private void OnTriggerEnter2D(Collider2D collision)
+        {
+            if (collision.gameObject.CompareTag("Player"))
+            {
+                _seePlayer = true;
+
+            }
+        }
+
+        private void OnTriggerExit2D(Collider2D collision)
+        {
+            if (collision.gameObject.CompareTag("Player"))
+            {
+                _seePlayer = false;
+
             }
         }
     }

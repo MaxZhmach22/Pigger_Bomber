@@ -1,10 +1,9 @@
-using System;
 using UnityEngine;
 using Zenject;
 
 namespace PiggerBomber
 {
-    public class Installer : MonoInstaller
+    internal sealed class Installer : MonoInstaller
     {
         [SerializeField] private Transform _placeForUi;
         [SerializeField] private Player _player;
@@ -15,59 +14,33 @@ namespace PiggerBomber
         [SerializeField] private AppleTree _appleTree;
         [SerializeField] private Apple _apple;
         [SerializeField] private Grid _grid;
+        [SerializeField] private DogEnemy _dogEnemy;
+        [SerializeField] private HumanEnemy _humanEnemy;
+        [SerializeField] private Bomb _bomb;
 
         public override void InstallBindings()
         {
-            Container.Bind<Player>().FromInstance(_player).AsSingle();
+            Container.BindInterfacesAndSelfTo<Player>().FromInstance(_player).AsSingle();
             InstalGameStateFactories();
             InputSystemInstaller();
             MainMenuControllerBindings();
             MainGameControllerBindings();
         }
 
-        private void MainGameControllerBindings()
+        private void InstalGameStateFactories()
         {
-            var parentObj = new GameObject("GridView");
-            Container.Bind<IGridController>().To<GridController>().WhenInjectedInto<PlayerMovementController>();
-            Container.BindInterfacesAndSelfTo<PlayerMovementController>().AsSingle();
-            Container.Bind<GridController>().AsCached();
-            Container.Bind<IGridController>().To<GridController>().WhenInjectedInto<TreesViewController>();
-            Container.Bind<TreesViewController>().AsCached();
-            Container.Bind<AppleTree>().FromInstance(_appleTree).AsSingle();
+            Container.Bind<GameStateFactory>().AsSingle();
+            Container.BindFactory<StartGameState, StartGameState.Factory>().WhenInjectedInto<GameStateFactory>();
+            Container.BindFactory<MainMenuController, MainMenuController.Factory>().WhenInjectedInto<StartGameState>();
+            Container.BindFactory<GameGameState, GameGameState.Factory>().WhenInjectedInto<GameStateFactory>();
+            Container.BindFactory<MainGameController, MainGameController.Factory>().WhenInjectedInto<GameGameState>();
 
-            Container.Bind<ITreesViewController>().To<TreesViewController>().WhenInjectedInto<ApplesController>();
-            Container.BindInterfacesAndSelfTo<ApplesController>().AsSingle();
-            Container.Bind<Apple>().FromInstance(_apple).AsSingle();
-
-            var gridControllerView = Container.InstantiatePrefabForComponent<GridControllerView>(
-               _gridControllerView, parentObj.transform);
-            Container.Bind<GridControllerView>().FromInstance(gridControllerView).AsSingle();
-            var grid = Container.InstantiatePrefabForComponent<Grid>(
-              _grid, parentObj.transform);
-            Container.Bind<Grid>().FromInstance(grid).AsSingle();
-            var levelView = Container.InstantiatePrefabForComponent<LevelView>(
-               _levelView, new GameObject("LevelView").transform);
-            Container.Bind<LevelView>().FromInstance(levelView).AsSingle();
-            var gridStatView = Container.InstantiatePrefabForComponent<Grid>(
-              _grid, parentObj.transform);
         }
 
         private void InputSystemInstaller()
         {
             var joystic = Container.InstantiatePrefabForComponent<DynamicJoystick>(_dynamicJoystick, _placeForUi);
             Container.Bind<DynamicJoystick>().FromInstance(joystic).AsSingle();
-        }
-
-        private void InstalGameStateFactories()
-        {
-            Container.Bind<GameStateFactory>().AsSingle();
-
-            Container.BindFactory<StartGameState, StartGameState.Factory>().WhenInjectedInto<GameStateFactory>();
-            Container.BindFactory<MainMenuController, MainMenuController.Factory>().WhenInjectedInto<StartGameState>();
-
-            Container.BindFactory<GameGameState, GameGameState.Factory>().WhenInjectedInto<GameStateFactory>();
-            Container.BindFactory<MainGameController, MainGameController.Factory>().WhenInjectedInto<GameGameState>();
-
         }
 
         private void MainMenuControllerBindings()
@@ -77,5 +50,54 @@ namespace PiggerBomber
             Container.Bind<MainMenuView>().FromInstance(mainMenuView).AsSingle();
         }
 
+        private void MainGameControllerBindings()
+        {
+            Container.BindInterfacesAndSelfTo<PlayerMovementController>().AsSingle();
+            GridControllerBindings();
+            TreesAndApplesControlBindings();
+            EnemiesControllerBindings();
+            BombControllerBindings();
+        }
+
+        private void GridControllerBindings()
+        {
+            var parentObj = new GameObject("GridView");
+            Container.BindInterfacesAndSelfTo<GridController>().AsSingle();
+            var gridControllerView = Container.InstantiatePrefabForComponent<GridControllerView>(
+               _gridControllerView, parentObj.transform);
+            Container.Bind<GridControllerView>().FromInstance(gridControllerView).AsSingle();
+            var grid = Container.InstantiatePrefabForComponent<Grid>(
+              _grid, parentObj.transform);
+            Container.Bind<Grid>().FromInstance(grid).AsSingle();
+            var levelView = Container.InstantiatePrefabForComponent<LevelView>(
+               _levelView, new GameObject("LevelView").transform); Container.Bind<LevelView>().FromInstance(levelView).AsSingle();
+            var gridStatView = Container.InstantiatePrefabForComponent<Grid>(
+              _grid, parentObj.transform);
+        }
+
+        private void TreesAndApplesControlBindings()
+        {
+            Container.BindInterfacesAndSelfTo<ApplesController>().AsSingle();
+            Container.BindInterfacesAndSelfTo<TreesViewController>().AsSingle();
+            Container.Bind<Apple>().FromInstance(_apple).AsSingle();
+            Container.Bind<AppleTree>().FromInstance(_appleTree).AsSingle();
+        }
+
+        private void EnemiesControllerBindings()
+        {
+            var enemies = new GameObject("Enemies").transform;
+            Container.BindInterfacesAndSelfTo<EnemiesMovingController>().AsSingle();
+            var dogEnemy = Container.InstantiatePrefabForComponent<DogEnemy>(_dogEnemy, enemies);
+            var humanEnemy = Container.InstantiatePrefabForComponent<HumanEnemy>(_humanEnemy, enemies);
+            Container.Bind<DogEnemy>().FromInstance(dogEnemy).AsSingle();
+            Container.Bind<HumanEnemy>().FromInstance(humanEnemy).AsSingle();
+        }
+
+        private void BombControllerBindings()
+        {
+            Container.BindInterfacesAndSelfTo<BombController>().AsSingle();
+            var bomb = Container.InstantiatePrefabForComponent<Bomb>(_bomb);
+            Container.Bind<Bomb>().FromInstance(bomb).AsSingle();
+        }
     }
 }

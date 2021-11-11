@@ -9,10 +9,10 @@ namespace PiggerBomber
     {
         private readonly GridControllerView _gridControllerView;
 
-        private int _startX = 0;
-        private int _startY = 0;
-        private int _endX = 5;
-        private int _endY = 5;
+        private int _startX;
+        private int _startY;
+        private int _endX;
+        private int _endY;
 
         public bool FindDistance = false;
 
@@ -20,10 +20,11 @@ namespace PiggerBomber
         private Vector3 _leftBorromLocation = new Vector3(0, 0, 0);
         private float _scaleX => _gridControllerView.Grid.cellSize.x;
         private float _scaleY => _gridControllerView.Grid.cellSize.y;
-        public GameObject[,] GridArray { get; private set; }
+        public GameObject[,] CurrentGridArray { get; private set; }
         public IReadOnlyList<GameObject> Path => _path;
         
         private List<GameObject> _path = new List<GameObject>();
+        public Subject<bool> PlayersNewPosition = new Subject<bool>();
 
         public GridController(GridControllerView gridControllerView)
         {
@@ -32,31 +33,19 @@ namespace PiggerBomber
 
         public override void Start()
         {
-            GridArray = new GameObject[_gridControllerView.Columns, _gridControllerView.Rows];
+            CurrentGridArray = new GameObject[_gridControllerView.Columns, _gridControllerView.Rows];
             _parentTransform = new GameObject("GridArray").transform;
             if (_gridControllerView.GridPointPrefab)
                 GenerateGrid();
         }
         public override void Dispose()
         {
-           foreach(GameObject gameObject in GridArray)
+           foreach(GameObject gameObject in CurrentGridArray)
                 GameObject.Destroy(gameObject);
-            Array.Clear(GridArray, 0, GridArray.Length);
+            Array.Clear(CurrentGridArray, 0, CurrentGridArray.Length);
 
             _path.Clear();
             GameObject.Destroy(_parentTransform);
-        }
-
-
-        // Update is called once per frame
-        void Update()
-        {
-            if (FindDistance)
-            {
-                SetDistance();
-                SetPath();
-                FindDistance = false;
-            }
         }
 
         private void GenerateGrid()
@@ -74,32 +63,45 @@ namespace PiggerBomber
                     obj.GetComponent<GridStatView>().x = i;
                     obj.GetComponent<GridStatView>().y = j;
                     offset += _gridControllerView.OffsetX;
-                    GridArray[i, j] = obj;
+                    CurrentGridArray[i, j] = obj;
                 }
             }
         }
 
-        /// <summary>
-        /// В статрте указываем начальную точку игрока и выставляем занчение visited в -1, кроме позиции игрока.
-        /// </summary>
-        private void InitialSetup()
+        public void SetNewPath(Vector2Int playerPosition)
         {
-            foreach (GameObject gameObject in GridArray)
-            {
-                gameObject.GetComponent<GridStatView>().visited = -1;
-            }
-            GridArray[_startX, _startY].GetComponent<GridStatView>().visited = 0;
+            _endX = playerPosition.x;
+            _endY = playerPosition.y;
+            PlayersNewPosition.OnNext(true);
         }
 
-        private void SetDistance()
+        public List<GameObject> CreateNewPath(int startX, int startY)
         {
-            InitialSetup();
-            int x = _startX;
-            int y = _startY;
-            int[] testArray = new int[_gridControllerView.Rows * _gridControllerView.Columns];
+            SetDistance(startX, startY);
+            return SetPath(_endX, _endY);
+        }
+
+        public Vector2Int GenerateRandomPointInGrid()
+        {
+            Vector2Int randomPos;
+            GridStatView gridStatView;
+            do
+            {
+                var x = UnityEngine.Random.Range(CurrentGridArray.GetLowerBound(0), CurrentGridArray.GetUpperBound(0));
+                var y = UnityEngine.Random.Range(CurrentGridArray.GetLowerBound(1), CurrentGridArray.GetUpperBound(1));
+                gridStatView = CurrentGridArray[x, y].GetComponent<GridStatView>();
+                randomPos = new Vector2Int(x, y);
+            } while (gridStatView == null);
+
+            return randomPos;
+        }
+
+        private void SetDistance(int startX, int startY)
+        {
+            InitialSetup(startX, startY);
             for (int step = 1; step < _gridControllerView.Rows * _gridControllerView.Columns; step++)
             {
-                foreach (GameObject gameObject in GridArray) 
+                foreach (GameObject gameObject in CurrentGridArray) 
                 {
                     if (gameObject && gameObject.GetComponent<GridStatView>().visited == step - 1)
                         TestFourDirections(
@@ -110,46 +112,57 @@ namespace PiggerBomber
             }
         }
 
-        private void SetPath()
+        private void InitialSetup(int startX, int startY)
+        {
+            foreach (GameObject gameObject in CurrentGridArray)
+            {
+                gameObject.GetComponent<GridStatView>().visited = -1;
+            }
+            CurrentGridArray[startX, startY].GetComponent<GridStatView>().visited = 0;
+        }
+
+        public List<GameObject> SetPath(int endX, int endY)
         {
             int step;
-            int x = _endX;
-            int y = _endY;
             List<GameObject> tempList = new List<GameObject>();
-            _path.Clear();
-            if(GridArray[_endX, _endY] && GridArray[_endX, _endY].GetComponent<GridStatView>().visited > 0)
+            List<GameObject> path = new List<GameObject>();
+            if(CurrentGridArray[endX, endY] && CurrentGridArray[endX, endY].GetComponent<GridStatView>().visited > 0)
             {
-                _path.Add(GridArray[x, y]);
-                step = GridArray[x, y].GetComponent<GridStatView>().visited - 1;
+                path.Add(CurrentGridArray[endX, endY]);
+                step = CurrentGridArray[endX, endY].GetComponent<GridStatView>().visited - 1;
             }
             else
             {
                 Debug.Log("No PATH!");
-                return;
+                return null;
             }
-            for (int i = step; step > -1; step --)
+            for (; step > -1; step --)
             {
-                if (TestDirection(x, y, step, Directions.Up))
-                    tempList.Add(GridArray[x, y + 1]);
-                if (TestDirection(x, y, step, Directions.Right))
-                    tempList.Add(GridArray[x + 1, y]);
-                if (TestDirection(x, y, step, Directions.Down))
-                    tempList.Add(GridArray[x, y - 1]);
-                if (TestDirection(x, y, step, Directions.Left))
-                    tempList.Add(GridArray[x-1, y]);
+                if (TestDirection(endX, endY, step, Directions.Up))
+                    tempList.Add(CurrentGridArray[endX, endY + 1]);
+                if (TestDirection(endX, endY, step, Directions.Right))
+                    tempList.Add(CurrentGridArray[endX + 1, endY]);
+                if (TestDirection(endX, endY, step, Directions.Down))
+                    tempList.Add(CurrentGridArray[endX, endY - 1]);
+                if (TestDirection(endX, endY, step, Directions.Left))
+                    tempList.Add(CurrentGridArray[endX-1, endY]);
 
-                GameObject tempObj = FindClosest(GridArray[_endX, _endY].transform, tempList);
-                _path.Add(tempObj);
-                x = tempObj.GetComponent<GridStatView>().x;
-                y = tempObj.GetComponent<GridStatView>().y;
-                tempList.Clear();
+                GameObject tempObj = FindClosest(CurrentGridArray[endX, endY].transform, tempList);
+                tempObj.TryGetComponent<GridController>(out var gridStatView);
+                if(gridStatView != null)
+                {
+                    path.Add(tempObj);
+                    endX = tempObj.GetComponent<GridStatView>().x;
+                    endY = tempObj.GetComponent<GridStatView>().y;
+                    tempList.Clear();
+                } 
             }
             foreach (var gameObject in _path)
             {
                 var sr = gameObject.GetComponent<SpriteRenderer>();
                 sr.color = new Color(0, 1, 1);
             }
-           
+            return path;
         }
 
         private void TestFourDirections(int x, int y, int step)
@@ -170,24 +183,22 @@ namespace PiggerBomber
             switch (directions)
             {
                 case Directions.Up:
-                    if (y + 1 < _gridControllerView.Rows /*1) проверка на выход за рамки сетки*/
-                        && GridArray[x, y + 1] /*2) проверка на существование точки на сетке*/ 
-                        && GridArray[x, y + 1].GetComponent<GridStatView>().visited == step /*3) проверка на соответсвие шагу*/)
+                    if (y + 1 < _gridControllerView.Rows && CurrentGridArray[x, y + 1] && CurrentGridArray[x, y + 1].GetComponent<GridStatView>().visited == step)
                         return true;
                     else
                         return false;
                 case Directions.Right:
-                    if (x + 1 < _gridControllerView.Columns && GridArray[x + 1, y] && GridArray[x + 1, y].GetComponent<GridStatView>().visited == step)
+                    if (x + 1 < _gridControllerView.Columns && CurrentGridArray[x + 1, y] && CurrentGridArray[x + 1, y].GetComponent<GridStatView>().visited == step)
                         return true;
                     else
                         return false;
                 case Directions.Down:
-                    if (y - 1 > -1 && GridArray[x, y - 1] && GridArray[x, y - 1].GetComponent<GridStatView>().visited == step)
+                    if (y - 1 > -1 && CurrentGridArray[x, y - 1] && CurrentGridArray[x, y - 1].GetComponent<GridStatView>().visited == step)
                         return true;
                     else
                         return false;
                 case Directions.Left:
-                    if (x - 1 > -1 && GridArray[x - 1, y] && GridArray[x - 1, y].GetComponent<GridStatView>().visited == step)
+                    if (x - 1 > -1 && CurrentGridArray[x - 1, y] && CurrentGridArray[x - 1, y].GetComponent<GridStatView>().visited == step)
                         return true;
                     else
                         return false;
@@ -197,8 +208,8 @@ namespace PiggerBomber
 
         private void SetVisited(int x, int y, int step)
         {
-            if (GridArray[x, y])
-                GridArray[x, y].GetComponent<GridStatView>().visited = step;
+            if (CurrentGridArray[x, y])
+                CurrentGridArray[x, y].GetComponent<GridStatView>().visited = step;
         }
 
         private GameObject FindClosest(Transform targetLoacation, List<GameObject> list)

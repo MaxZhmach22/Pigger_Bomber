@@ -6,6 +6,7 @@ namespace PiggerBomber
     internal interface ITreesViewController
     {
          IReadOnlyList<Vector2Int> MatureTreesPositionList { get; }
-         GameObject[,] CurrentGridArray { get; }
+         IReadOnlyDictionary<Vector2Int, GameObject> FreePositionInGrid { get; }
+
     }
 }

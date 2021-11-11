@@ -14,6 +14,7 @@ namespace PiggerBomber
         [Inject] private DiContainer _diContainer; 
 
         private readonly TreesViewController _treesViewController;
+        private readonly IGridController _gridController;
         private Subject<int> _onAppleEat = new Subject<int>(); 
         private List<Vector3> _freePositionList;
         private List<GameObject> _activeApples;
@@ -25,9 +26,12 @@ namespace PiggerBomber
 
         #region ClassLifeCycles
 
-        public ApplesController(TreesViewController treesViewController)
+        public ApplesController(
+            TreesViewController treesViewController, 
+            IGridController gridController)
         {
             _treesViewController = treesViewController;
+            _gridController = gridController;
             _freePositionList = new List<Vector3>();
             _parentTransform = new GameObject("ApplesBasket").transform;
             _activeApples = new List<GameObject>();
@@ -72,12 +76,23 @@ namespace PiggerBomber
 
             var apple = _diContainer.InstantiatePrefab(_apple, _parentTransform);
             _activeApples.Add(apple);
+            CheckOldApples();
             foreach (var trees in _treesViewController.MatureTreesPositionList)
             {
-                CheckFreePosition(_treesViewController.CurrentGridArray,trees);
+                CheckFreePosition(_gridController.CurrentGridArray,trees);
             }
             apple.transform.position = RandomApplePosition();
             _timer = 0;
+        }
+
+        private void CheckOldApples()
+        {
+            if(_activeApples.Count > 5)
+            {
+                var oldApple = _activeApples[0];
+                _activeApples.RemoveAt(0);
+                GameObject.Destroy(oldApple);
+            }
         }
 
         private void CheckFreePosition(GameObject[,] gridArray, Vector2Int currentMatureTreePosition)
