@@ -15,7 +15,17 @@ namespace PiggerBomber
         [field: SerializeField] public float AngryWalkingSpeed { get; private set; }
         [field: SerializeField] public float DirtyWalkingSpeed { get; private set; }
 
-        protected abstract void SetSprites(Directions spriteStates);
+        protected float _currentSpeed;
+        protected SpriteRenderer _spriteRenderer;
+        protected SpriteStates _currentState;
+        protected Collider2D _collider;
+        protected Directions _currentDirection;
+
+        public abstract bool IsMoving { get; set; }
+        public abstract List<GameObject> Path { get; set; }
+        public abstract int PathIndex { get; set; }
+        public abstract float CurrentSpeed { get; }
+        public abstract void SetSprites(Directions spriteStates);
         protected abstract void ChangeSpriteDirections(Directions directions, List<Sprite> spritesList);
         public abstract void GetDirty();
 

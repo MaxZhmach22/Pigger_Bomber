@@ -29,7 +29,6 @@ namespace PiggerBomber
         public void Start()
         {
             ChangeState(GameStates.Game);
-            gameObject.SetActive(false);
         }
            
         public void ChangeState(GameStates state)

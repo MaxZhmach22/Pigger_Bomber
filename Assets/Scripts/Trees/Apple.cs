@@ -22,7 +22,6 @@ namespace PiggerBomber
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            Debug.Log(collision.transform.name);
             if (collision.gameObject.CompareTag("Player"))
             {
                 _appleController.EatApple(this);

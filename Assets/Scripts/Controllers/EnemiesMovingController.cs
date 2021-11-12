@@ -11,19 +11,14 @@ namespace PiggerBomber
     {
         private readonly DogEnemy _dogEnemy;
         private readonly HumanEnemy _humanEnemy;
-        private readonly ITreesViewController _treesViewController;
         private readonly GridController _gridController;
         private readonly Player _player;
+        private bool _humanSeePlayer;
+        private bool _dogSeePlayer;
 
-        private Vector3 _origPosition;
-        private Vector3 _targetPosition; 
-        private float _timeToMove = 0.5f;
-        private bool _isMoving;
+        private float _timeToMove = 1f;
         private CompositeDisposable _disposables;
-
-        private List<GameObject> _humanPath = new List<GameObject>();
-        private List<GameObject> _dogPath = new List<GameObject>();
-
+   
         private Vector2Int _startPosHuman =>
             new Vector2Int(_gridController.CurrentGridArray.GetUpperBound(0),
                            _gridController.CurrentGridArray.GetUpperBound(1));
@@ -37,13 +32,11 @@ namespace PiggerBomber
         public EnemiesMovingController(
             DogEnemy dogEnemy,
             HumanEnemy humanEnemy,
-            ITreesViewController treesViewController,
             GridController gridController,
             Player player)
         {
             _dogEnemy = dogEnemy;
             _humanEnemy = humanEnemy;
-            _treesViewController = treesViewController;
             _gridController = gridController;
             _player = player;
             _disposables = new CompositeDisposable();
@@ -51,9 +44,20 @@ namespace PiggerBomber
 
         public override void Start()
         {
-            _gridController.PlayersNewPosition.Subscribe(_ => SetPath()).AddTo(_disposables);
+            _humanEnemy.SeePlayer.Subscribe(boolean => SetHumanPath(boolean)).AddTo(_disposables);
+            _dogEnemy.SeePlayer.Subscribe(boolean => SetDogPath(boolean)).AddTo(_disposables);
             SetStartPoint();
-            Debug.Log(_gridController.CurrentGridArray);
+            RandomPointToWalk(_startPosHuman.x, _startPosHuman.y, _humanEnemy);
+            RandomPointToWalk(_startPosDog.x, _startPosDog.y, _dogEnemy);
+        }
+
+        private void RandomPointToWalk(int currentPosX, int currentPosY, BaseEnemy enemy)
+        {
+            enemy.Path.Clear();
+            var randomPoint = _gridController.GenerateRandomPointInGrid();
+            _gridController.SetDistance(currentPosX, currentPosY);
+            enemy.Path = _gridController.SetPath(randomPoint.x, randomPoint.y);
+            enemy.PathIndex = enemy.Path.Count - 1;
         }
 
         private void SetStartPoint()
@@ -69,56 +73,140 @@ namespace PiggerBomber
 
         #endregion
 
-        private void SetPath()
+        private void SetHumanPath(bool seePlayer)
         {
-            _humanPath.Clear();
-            _dogPath.Clear();
-            _humanPath = _gridController.CreateNewPath()
+            var startPosX = _humanEnemy.Path[_humanEnemy.PathIndex].GetComponent<GridStatView>().x;
+            var startPosY = _humanEnemy.Path[_humanEnemy.PathIndex].GetComponent<GridStatView>().y;
+
+            if (seePlayer)
+            {
+                _humanSeePlayer = true;
+                _humanEnemy.Path.Clear();
+                _gridController.SetDistance(startPosX, startPosY);
+                _humanEnemy.Path = _gridController.SetPath(_player.CurrentIndexInArray.x, _player.CurrentIndexInArray.y);
+                _humanEnemy.PathIndex = _humanEnemy.Path.Count - 1;
+            }
+            else
+            {
+                _humanSeePlayer = false;
+                RandomPointToWalk(startPosX, startPosY, _humanEnemy);
+            }
+        }
+
+        private void SetDogPath(bool seePlayer)
+        {
+            var startPosX = _dogEnemy.Path[_dogEnemy.PathIndex].GetComponent<GridStatView>().x;
+            var startPosY = _dogEnemy.Path[_dogEnemy.PathIndex].GetComponent<GridStatView>().y;
+
+            if (seePlayer)
+            {
+                _dogSeePlayer = true; 
+                _dogEnemy.Path.Clear();
+                _gridController.SetDistance(startPosX, startPosY);
+                _dogEnemy.Path = _gridController.SetPath(_player.CurrentIndexInArray.x, _player.CurrentIndexInArray.y);
+                _dogEnemy.PathIndex = _dogEnemy.Path.Count - 1;
+            }
+            else
+            {
+                _dogSeePlayer = false;
+                RandomPointToWalk(startPosX, startPosY, _dogEnemy);
+            }
+                
         }
 
         public void Tick()
         {
-            if (_humanEnemy.gameObject.activeInHierarchy)
+            if (!_humanEnemy.gameObject.activeInHierarchy ||
+                !_dogEnemy.gameObject.activeInHierarchy)
+                return;
+
+            HumanEnemyMoving();
+            DogEnemyMoving();
+        }
+
+        private void HumanEnemyMoving()
+        {
+            if (_humanEnemy.PathIndex == 0)
             {
-                MainThreadDispatcher.StartUpdateMicroCoroutine(Move(nextPos, key));
+                if (_humanSeePlayer)
+                {
+                    Debug.Log("You Loose");
+                    return;
+                }
+                else
+                {
+                    RandomPointToWalk(
+                   _humanEnemy.Path[0].gameObject.GetComponent<GridStatView>().x,
+                   _humanEnemy.Path[0].gameObject.GetComponent<GridStatView>().y,
+                   _humanEnemy);
+                }
+            }
+            if (!_humanEnemy.IsMoving)
+            {
+                MainThreadDispatcher.StartUpdateMicroCoroutine(Move(_humanEnemy, _humanEnemy.Path));
+                _humanEnemy.IsMoving = true;
             }
         }
 
-        private void Move(List<GameObject> path)
+        private void DogEnemyMoving()
         {
-            foreach (var item in collection)
+            if (_dogEnemy.PathIndex == 0)
             {
-
+                if (_dogSeePlayer)
+                {
+                    Debug.Log("You Loose");
+                    return;
+                }
+                else
+                {
+                    RandomPointToWalk(
+                   _dogEnemy.Path[0].gameObject.GetComponent<GridStatView>().x,
+                   _dogEnemy.Path[0].gameObject.GetComponent<GridStatView>().y,
+                   _dogEnemy);
+                }
+            }
+            if (!_dogEnemy.IsMoving)
+            {
+                MainThreadDispatcher.StartUpdateMicroCoroutine(Move(_dogEnemy, _dogEnemy.Path));
+                _dogEnemy.IsMoving = true;
             }
         }
 
-        private IEnumerator Move(GameObject enemy)
+        private IEnumerator Move(BaseEnemy enemy, List<GameObject> path)
         {
+            Vector3 originPos;
+            Vector3 targetPos;
             float elapsedTime = 0;
-            _origPosition = enemy.transform.position;
-            _targetPosition = direction;
-            while (elapsedTime < _timeToMove)
+            originPos = enemy.gameObject.transform.position;
+            targetPos = path[enemy.PathIndex].transform.position;
+            while (elapsedTime * enemy.CurrentSpeed < _timeToMove)
             {
-                enemy.transform.position = Vector3.Lerp(_origPosition, _targetPosition, (elapsedTime / _timeToMove));
+                enemy.transform.position = Vector3.Lerp(originPos, targetPos, (elapsedTime * enemy.CurrentSpeed / _timeToMove));
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
-            enemy.transform.position = _targetPosition;
-            _isMoving = false;
+           
+            enemy.SetSprites(GetSpriteDirection(path, enemy.PathIndex));
+            enemy.transform.position = targetPos;
+            enemy.PathIndex--;
+            enemy.IsMoving = false;
         }
 
-        private void MoveToNextPos(int x, int y)
+        private Directions GetSpriteDirection(List<GameObject> path, int index)
         {
-            _isMoving = true;
-            var key = new Vector2Int(_player.CurrentIndexInArray.x + x, _player.CurrentIndexInArray.y + y);
-            _treesViewController.FreePositionInGrid.TryGetValue(key, out var gameObject);
-            if (gameObject != null)
-            {
-                var nextPos = gameObject.transform.position;
-                MainThreadDispatcher.StartUpdateMicroCoroutine(Move(nextPos, key));
-            }
+            if (index < 0 || path.Count == 0)
+                return Directions.Left;
 
-        }
+            if (path[index].gameObject.GetComponent<GridStatView>().x < path[index - 1].gameObject.GetComponent<GridStatView>().x)
+                return Directions.Right;
+            if (path[index].gameObject.GetComponent<GridStatView>().x > path[index - 1].gameObject.GetComponent<GridStatView>().x)
+                return Directions.Left;
+            if (path[index].gameObject.GetComponent<GridStatView>().y > path[index - 1].gameObject.GetComponent<GridStatView>().y)
+                return Directions.Down;
+            if (path[index].gameObject.GetComponent<GridStatView>().y < path[index - 1].gameObject.GetComponent<GridStatView>().y)
+                return Directions.Up;
 
+            return default;
+        } 
     }
 }

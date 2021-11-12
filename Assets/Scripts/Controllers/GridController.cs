@@ -19,7 +19,6 @@ namespace PiggerBomber
         private Transform _parentTransform;
         private Vector3 _leftBorromLocation = new Vector3(0, 0, 0);
         private float _scaleX => _gridControllerView.Grid.cellSize.x;
-        private float _scaleY => _gridControllerView.Grid.cellSize.y;
         public GameObject[,] CurrentGridArray { get; private set; }
         public IReadOnlyList<GameObject> Path => _path;
         
@@ -96,18 +95,16 @@ namespace PiggerBomber
             return randomPos;
         }
 
-        private void SetDistance(int startX, int startY)
+        public void SetDistance(int startX, int startY)
         {
             InitialSetup(startX, startY);
             for (int step = 1; step < _gridControllerView.Rows * _gridControllerView.Columns; step++)
             {
                 foreach (GameObject gameObject in CurrentGridArray) 
                 {
-                    if (gameObject && gameObject.GetComponent<GridStatView>().visited == step - 1)
-                        TestFourDirections(
-                            gameObject.GetComponent<GridStatView>().x,
-                            gameObject.GetComponent<GridStatView>().y,
-                            step);
+                   var gridStatView = gameObject.GetComponent<GridStatView>();
+                    if(gridStatView != null && gridStatView.visited == step - 1)
+                      TestFourDirections(gridStatView.x, gridStatView.y, step);
                 }
             }
         }
@@ -116,7 +113,9 @@ namespace PiggerBomber
         {
             foreach (GameObject gameObject in CurrentGridArray)
             {
-                gameObject.GetComponent<GridStatView>().visited = -1;
+                gameObject.TryGetComponent<GridStatView>(out var gridStatView);
+                if (gridStatView != null)
+                    gridStatView.visited = -1; 
             }
             CurrentGridArray[startX, startY].GetComponent<GridStatView>().visited = 0;
         }
@@ -148,8 +147,7 @@ namespace PiggerBomber
                     tempList.Add(CurrentGridArray[endX-1, endY]);
 
                 GameObject tempObj = FindClosest(CurrentGridArray[endX, endY].transform, tempList);
-                tempObj.TryGetComponent<GridController>(out var gridStatView);
-                if(gridStatView != null)
+                if(tempObj.TryGetComponent(out GridStatView gridStatView))
                 {
                     path.Add(tempObj);
                     endX = tempObj.GetComponent<GridStatView>().x;
@@ -180,30 +178,40 @@ namespace PiggerBomber
 
         private bool TestDirection(int x, int y, int step, Directions directions)
         {
+            int nearCell = 1;
             switch (directions)
             {
                 case Directions.Up:
-                    if (y + 1 < _gridControllerView.Rows && CurrentGridArray[x, y + 1] && CurrentGridArray[x, y + 1].GetComponent<GridStatView>().visited == step)
+                    if (y + 1 < _gridControllerView.Rows && CurrentGridArray[x, y + nearCell] && CheckStep(x, y + nearCell, step))
                         return true;
                     else
                         return false;
                 case Directions.Right:
-                    if (x + 1 < _gridControllerView.Columns && CurrentGridArray[x + 1, y] && CurrentGridArray[x + 1, y].GetComponent<GridStatView>().visited == step)
+                    if (x + 1 < _gridControllerView.Columns && CurrentGridArray[x + nearCell, y] && CheckStep(x + nearCell, y, step))
                         return true;
                     else
                         return false;
                 case Directions.Down:
-                    if (y - 1 > -1 && CurrentGridArray[x, y - 1] && CurrentGridArray[x, y - 1].GetComponent<GridStatView>().visited == step)
+                    if (y - 1 > -1 && CurrentGridArray[x, y - nearCell] && CheckStep(x, y - nearCell, step))
                         return true;
                     else
                         return false;
                 case Directions.Left:
-                    if (x - 1 > -1 && CurrentGridArray[x - 1, y] && CurrentGridArray[x - 1, y].GetComponent<GridStatView>().visited == step)
+                    if (x - 1 > -1 && CurrentGridArray[x - nearCell, y] && CheckStep(x - nearCell, y, step))
                         return true;
                     else
                         return false;
             }
             return false;
+        }
+
+        private bool CheckStep(int x, int y, int step)
+        {
+            CurrentGridArray[x, y].TryGetComponent<GridStatView>(out var gridStatView);
+            if (gridStatView != null)
+                return gridStatView.visited == step;
+            else
+                return false;
         }
 
         private void SetVisited(int x, int y, int step)

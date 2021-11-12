@@ -80,7 +80,6 @@ namespace PiggerBomber
                 yield return null;
             }
             _player.transform.position = _targetPosition;
-            _gridController.SetNewPath(newIndex);
             _player.CurrentIndexInArray = newIndex;
             _isMoving = false;
         } 
