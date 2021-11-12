@@ -1,5 +1,6 @@
 ﻿using Zenject;
 using UniRx;
+using UnityEngine;
 
 namespace PiggerBomber
 {
@@ -24,11 +25,11 @@ namespace PiggerBomber
             _mainMenuView.StartGameBtn.OnClickAsObservable()
                 .Subscribe(_ => _player.ChangeState(GameStates.Game))
                 .AddTo(_mainMenuView);
+            _mainMenuView.QuitButton.OnClickAsObservable().Subscribe(_ => Application.Quit()).AddTo(_mainMenuView);
         }
-        public override void Dispose()
-        {
+
+        public override void Dispose() =>
             _mainMenuView.gameObject.SetActive(false);
-        }
 
         public class Factory : PlaceholderFactory<MainMenuController>
         {

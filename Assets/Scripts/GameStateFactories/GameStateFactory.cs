@@ -7,13 +7,16 @@ namespace PiggerBomber
     {
         readonly StartGameState.Factory _startStateFactory;
         readonly GameGameState.Factory _gameStateFactory;
+        readonly EndGameState.Factory _endStateFactory;
 
         public GameStateFactory(
             StartGameState.Factory startStateFactory,
-            GameGameState.Factory gameStateFactory)
+            GameGameState.Factory gameStateFactory,
+            EndGameState.Factory endStateFactory)
         {
             _startStateFactory = startStateFactory;
             _gameStateFactory = gameStateFactory;
+            _endStateFactory = endStateFactory;
         }
 
         public GameState CreateState(GameStates state) 
@@ -24,11 +27,11 @@ namespace PiggerBomber
                     return _startStateFactory.Create();
                 case GameStates.Game:
                     return _gameStateFactory.Create();
+                case GameStates.End:
+                    return _endStateFactory.Create();
                 case GameStates.None:
                     break;
-                case GameStates.End:
-                    Debug.Log("End State");
-                    break;
+
             }
 
             throw Assert.CreateException(); 

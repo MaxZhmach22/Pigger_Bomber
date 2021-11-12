@@ -15,9 +15,11 @@ namespace PiggerBomber
         private GameState _state;
         private GameStateFactory _gameStateFactory;
         private SpriteRenderer _spriteRenderer;
-
+        private Subject<bool> _bombIsPlanted = new Subject<bool>();
         public GameStates CurrentGameState { get; private set; }
         public Vector2Int CurrentIndexInArray { get; set; }
+
+        public ISubject<bool> BombIsPLanted => _bombIsPlanted;
 
         [Inject]
         public void Init(GameStateFactory gameStateFactory)
@@ -28,7 +30,7 @@ namespace PiggerBomber
 
         public void Start()
         {
-            ChangeState(GameStates.Game);
+            ChangeState(GameStates.Start);
         }
            
         public void ChangeState(GameStates state)
@@ -46,10 +48,11 @@ namespace PiggerBomber
         private void OnCollisionEnter(Collision collision) =>
             CollisionGameObject.OnNext(collision);
 
-        public void PlanBomb(Bomb bomb)
+        public void PlantBomb(Bomb bomb)
         {
             bomb.gameObject.transform.position = transform.position;
             bomb.gameObject.SetActive(true);
+            _bombIsPlanted.OnNext(true);
         }
 
         internal void SetSprite(Directions directions)

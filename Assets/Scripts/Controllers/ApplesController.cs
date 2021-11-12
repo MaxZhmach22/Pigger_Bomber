@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UniRx;
 using UnityEngine;
@@ -7,7 +6,7 @@ using Zenject;
 
 namespace PiggerBomber
 {
-    internal sealed class ApplesController : BaseController, IAppleController
+    internal sealed class ApplesController : BaseController, IAppleController, IEatApple
     {
 
         [Inject] private Apple _apple;
@@ -21,8 +20,8 @@ namespace PiggerBomber
         private Transform _parentTransform;
         private float _timerSpawnApple = 3;
         private float _timer;
-
         public ISubject<int> OnAppleEat => _onAppleEat;
+
 
         #region ClassLifeCycles
 
@@ -43,10 +42,10 @@ namespace PiggerBomber
 
         public override void Dispose()
         {
-            GameObject.Destroy(_parentTransform);
+            _parentTransform.gameObject.SetActive(false);
             foreach (var apple in _activeApples)
             {
-                GameObject.Destroy(apple);
+                apple.SetActive(false);
             }
             _activeApples.Clear();
             _freePositionList.Clear();

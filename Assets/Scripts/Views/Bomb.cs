@@ -1,75 +1,71 @@
-﻿using System;
-using System.Collections.Generic;
-using UniRx;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 
 namespace PiggerBomber
 {
-    internal sealed class Bomb: MonoBehaviour, ITickable
+    internal sealed class Bomb: MonoBehaviour, ILateTickable
     {
-        public Subject<bool> IsExplosed = new Subject<bool>();
+        #region Fields
 
         [field: SerializeField] public float BombTimer { get; private set; }
         [field: SerializeField] public Sprite BombSprite { get; private set; }
         [field: SerializeField] public List<Sprite> FlameSprites { get; private set; }
         [field: SerializeField] public float SpeedFireAnimation { get; private set; }
 
-        private float _timer;
-        private float _exploseTimer;
-        private SpriteRenderer  _spriteRenderer;
         private int _spriteIndex = 0;
-        private Collider2D _collider;
+        private bool _isExploed = false;
+        private SpriteRenderer _spriteRenderer;
 
-        private void Start() 
+        #endregion
+
+
+        #region ClassLifeCycles
+
+        private void Start()
         {
             _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            _collider = GetComponent<Collider2D>();
-            _collider.enabled = true;
             gameObject.SetActive(false);
         }
 
-        public void Tick()
+        #endregion
+
+
+        #region ZenjectUpdateMethods
+
+        public void LateTick()
         {
-            if (gameObject.activeInHierarchy)
+            if (_isExploed)
             {
-                _timer += Time.deltaTime;
-                _exploseTimer += Time.deltaTime;
-
-
-                if(_timer >= SpeedFireAnimation)
-                {
-                    AnimateFire();
-                    _timer = 0;
-                }
-
-                if (_exploseTimer >= BombTimer)
-                    Explose();
+                gameObject.SetActive(false);
+                _isExploed = false;
             }
-        }
-
-        private void Explose()
+        } 
+        private void OnTriggerStay2D(Collider2D collision)
         {
-            _collider.enabled = true;
-            IsExplosed.OnNext(true);
-            _exploseTimer = 0;
-            gameObject.SetActive(false);
+            collision.gameObject.TryGetComponent<BaseEnemy>(out var enemy);
+            if (enemy != null && _isExploed)
+                enemy.GetDirty();
         }
 
-        private void AnimateFire()
+        #endregion
+
+
+        #region Methods
+
+        public void OnExplosed() =>
+            _isExploed = true;
+
+        public void AnimateFire()
         {
             if (_spriteIndex >= FlameSprites.Count)
                 _spriteIndex = 0;
 
             _spriteRenderer.sprite = FlameSprites[_spriteIndex];
             _spriteIndex++;
-        }
+        } 
 
-        private void OnTriggerStay2D(Collider2D collision)
-        {
-            collision.gameObject.TryGetComponent<BaseEnemy>(out var enemy);
-            if (enemy != null)
-                enemy.GetDirty();
-        }
+        #endregion
+
     }
 }

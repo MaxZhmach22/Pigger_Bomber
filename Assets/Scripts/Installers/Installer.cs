@@ -5,10 +5,8 @@ namespace PiggerBomber
 {
     internal sealed class Installer : MonoInstaller
     {
-        [SerializeField] private Transform _placeForUi;
         [SerializeField] private Player _player;
         [SerializeField] private DynamicJoystick _dynamicJoystick;
-        [SerializeField] private MainMenuView _mainMenuView;
         [SerializeField] private LevelView _levelView;
         [SerializeField] private GridControllerView _gridControllerView;
         [SerializeField] private AppleTree _appleTree;
@@ -18,12 +16,20 @@ namespace PiggerBomber
         [SerializeField] private HumanEnemy _humanEnemy;
         [SerializeField] private Bomb _bomb;
 
+        [Header("Ui Views")]
+        [SerializeField] private Transform _placeForUi;
+        [SerializeField] private MainMenuView _mainMenuView;
+        [SerializeField] private GameUiView _gameUiView;
+        [SerializeField] private LooseMenuView _looseMenuView;
+
         public override void InstallBindings()
         {
             Container.BindInterfacesAndSelfTo<Player>().FromInstance(_player).AsSingle();
             InstalGameStateFactories();
             InputSystemInstaller();
             MainMenuControllerBindings();
+            LooseMenuControllerBindings();
+            GameUiControllerBindings();
             MainGameControllerBindings();
         }
 
@@ -34,6 +40,8 @@ namespace PiggerBomber
             Container.BindFactory<MainMenuController, MainMenuController.Factory>().WhenInjectedInto<StartGameState>();
             Container.BindFactory<GameGameState, GameGameState.Factory>().WhenInjectedInto<GameStateFactory>();
             Container.BindFactory<MainGameController, MainGameController.Factory>().WhenInjectedInto<GameGameState>();
+            Container.BindFactory<EndGameState, EndGameState.Factory>().WhenInjectedInto<GameStateFactory>();
+            Container.BindFactory<LooseGameController, LooseGameController.Factory>().WhenInjectedInto<EndGameState>();
 
         }
 
@@ -50,13 +58,31 @@ namespace PiggerBomber
             Container.Bind<MainMenuView>().FromInstance(mainMenuView).AsSingle();
         }
 
+        private void LooseMenuControllerBindings()
+        {
+           var looseMenuView = Container.InstantiatePrefabForComponent<LooseMenuView>(
+               _looseMenuView, _placeForUi);
+           Container.Bind<LooseMenuView>().FromInstance(looseMenuView).AsSingle();
+        }
+
+        private void GameUiControllerBindings()
+        {
+            var gameUiView = Container.InstantiatePrefabForComponent<GameUiView>(
+                _gameUiView, _placeForUi);
+            Container.Bind<GameUiView>().FromInstance(gameUiView).AsSingle();
+        }
+
+
+
         private void MainGameControllerBindings()
         {
             Container.BindInterfacesAndSelfTo<PlayerMovementController>().AsSingle();
+            Container.BindInterfacesAndSelfTo<GameUiController>().AsSingle();
             GridControllerBindings();
             TreesAndApplesControlBindings();
             EnemiesControllerBindings();
             BombControllerBindings();
+
         }
 
         private void GridControllerBindings()

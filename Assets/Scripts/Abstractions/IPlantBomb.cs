@@ -1,7 +1,11 @@
-﻿namespace PiggerBomber
+﻿using System;
+using UniRx;
+
+namespace PiggerBomber
 {
     internal interface IPlantBomb
     {
-        void PlanBomb(Bomb bomb);
+        ISubject<bool> BombIsPLanted { get; }
+        void PlantBomb(Bomb bomb);
     }
 }

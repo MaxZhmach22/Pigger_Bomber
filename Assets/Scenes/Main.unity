@@ -271,10 +271,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f661bff3bea2a84c9fcc338b0b649ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _placeForUi: {fileID: 802995357}
   _player: {fileID: 2039143006}
   _dynamicJoystick: {fileID: 8135886326569738823, guid: 56fae09712773584fb63896d473a98ee, type: 3}
-  _mainMenuView: {fileID: 2893618447561492438, guid: 0e63266ca9604f2428c3c0fdd1f9de6c, type: 3}
   _levelView: {fileID: 293970496303378737, guid: 64e26da0f382f4546b97fd34acb8c98e, type: 3}
   _gridControllerView: {fileID: 673436481555342540, guid: 6efe60d2ea155944493beca8f2ab21bb, type: 3}
   _appleTree: {fileID: 5137611333185844755, guid: c7be3c338e408b34aab7ce16d9b79337, type: 3}
@@ -283,6 +281,10 @@ MonoBehaviour:
   _dogEnemy: {fileID: 5712062925282147860, guid: 70fce5c3ed387d4468cbec5d50dd3d63, type: 3}
   _humanEnemy: {fileID: 8403515935438226420, guid: 25a8e178b2498634dad6e9755034d67f, type: 3}
   _bomb: {fileID: 1009698748033595261, guid: 9afa4784e7f87fb41b9f6c87077abdb5, type: 3}
+  _placeForUi: {fileID: 802995357}
+  _mainMenuView: {fileID: 2893618447561492438, guid: 0e63266ca9604f2428c3c0fdd1f9de6c, type: 3}
+  _gameUiView: {fileID: 2523177814950655990, guid: 5353470efc6d40341a259006351f2922, type: 3}
+  _looseMenuView: {fileID: 4749200183177906517, guid: 5a1005f91db886b4eb545d5ec1f02e1e, type: 3}
 --- !u!114 &1538051277
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -405,7 +407,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0

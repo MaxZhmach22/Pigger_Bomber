@@ -39,12 +39,11 @@ namespace PiggerBomber
         }
         public override void Dispose()
         {
-           foreach(GameObject gameObject in CurrentGridArray)
-                GameObject.Destroy(gameObject);
+            foreach (GameObject gameObject in CurrentGridArray)
+                gameObject.SetActive(false);
             Array.Clear(CurrentGridArray, 0, CurrentGridArray.Length);
-
             _path.Clear();
-            GameObject.Destroy(_parentTransform);
+            _parentTransform.gameObject.SetActive(false);
         }
 
         private void GenerateGrid()

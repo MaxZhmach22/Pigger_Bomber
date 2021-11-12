@@ -44,6 +44,8 @@ namespace PiggerBomber
 
         public override void Start()
         {
+            _humanEnemy.gameObject.SetActive(true);
+            _dogEnemy.gameObject.SetActive(true);
             _humanEnemy.SeePlayer.Subscribe(boolean => SetHumanPath(boolean)).AddTo(_disposables);
             _dogEnemy.SeePlayer.Subscribe(boolean => SetDogPath(boolean)).AddTo(_disposables);
             SetStartPoint();
@@ -75,6 +77,7 @@ namespace PiggerBomber
 
         private void SetHumanPath(bool seePlayer)
         {
+
             var startPosX = _humanEnemy.Path[_humanEnemy.PathIndex].GetComponent<GridStatView>().x;
             var startPosY = _humanEnemy.Path[_humanEnemy.PathIndex].GetComponent<GridStatView>().y;
 
@@ -120,6 +123,9 @@ namespace PiggerBomber
                 !_dogEnemy.gameObject.activeInHierarchy)
                 return;
 
+            if (_player.CurrentGameState != GameStates.Game)
+                return;
+
             HumanEnemyMoving();
             DogEnemyMoving();
         }
@@ -130,7 +136,12 @@ namespace PiggerBomber
             {
                 if (_humanSeePlayer)
                 {
-                    Debug.Log("You Loose");
+                    _humanEnemy.Path.Clear();
+                    _dogEnemy.Path.Clear();
+                    SetStartPoint();
+                    _dogEnemy.gameObject.SetActive(false);
+                    _humanEnemy.gameObject.SetActive(false);
+                    _player.ChangeState(GameStates.End);
                     return;
                 }
                 else
@@ -150,11 +161,19 @@ namespace PiggerBomber
 
         private void DogEnemyMoving()
         {
+            if (_player.CurrentGameState != GameStates.Game)
+                return;
+
             if (_dogEnemy.PathIndex == 0)
             {
                 if (_dogSeePlayer)
                 {
-                    Debug.Log("You Loose");
+                    _humanEnemy.Path.Clear();
+                    _dogEnemy.Path.Clear();
+                    SetStartPoint();
+                    _dogEnemy.gameObject.SetActive(false);
+                    _humanEnemy.gameObject.SetActive(false);
+                    _player.ChangeState(GameStates.End);
                     return;
                 }
                 else
@@ -174,6 +193,9 @@ namespace PiggerBomber
 
         private IEnumerator Move(BaseEnemy enemy, List<GameObject> path)
         {
+            if (_player.CurrentGameState != GameStates.Game)
+                yield break;
+
             Vector3 originPos;
             Vector3 targetPos;
             float elapsedTime = 0;

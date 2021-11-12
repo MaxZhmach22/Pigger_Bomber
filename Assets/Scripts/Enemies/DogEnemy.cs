@@ -24,6 +24,7 @@ namespace PiggerBomber
 
         private void Start()
         {
+            gameObject.SetActive(false);
             _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             _currentState = SpriteStates.Common;
             _currentDirection = Directions.Left;

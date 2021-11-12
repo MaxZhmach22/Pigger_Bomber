@@ -17,7 +17,6 @@ namespace PiggerBomber
         public readonly List<Vector2Int> _matureTreesPositionList;
         private Dictionary<Vector2Int, GameObject> _freePositionsInGrid;
         private CompositeDisposable _disposables; 
-        private int _countTreesInRow = 7;
         private int _upperBoundX; 
         private int _upperBoundY;
 
@@ -43,19 +42,19 @@ namespace PiggerBomber
 
         public override void Dispose()
         {
+            _disposables.Clear();
             foreach (var tree in _trees)
             {
-                _disposables.Clear();
-                GameObject.Destroy(tree);
+                tree.gameObject.SetActive(false);
             }
             _trees.Clear();
             foreach (var item in _freePositionsInGrid)
             {
-                GameObject.Destroy(item.Value);
+                item.Value.gameObject.SetActive(false);
             }
             _freePositionsInGrid.Clear();
             _matureTreesPositionList.Clear();
-            GameObject.Destroy(_parentTransform);
+
         }
 
         private void SubscribeOnTreesEvent()
@@ -85,7 +84,7 @@ namespace PiggerBomber
                         tree.transform.position = _gridController.CurrentGridArray[x, y].transform.position;
                         tree.GetComponent<AppleTree>().SetTreeIndex(x, y);
                         var emptyGridObj = _gridController.CurrentGridArray[x, y];
-                        GameObject.Destroy(emptyGridObj);
+                        emptyGridObj.gameObject.SetActive(false);
                         _gridController.CurrentGridArray[x, y] = tree.gameObject;
                         _trees.Add(tree);
                     }

@@ -11,6 +11,7 @@ namespace PiggerBomber
         private readonly ApplesController _applesController;
         private readonly EnemiesMovingController _enemiesMovingController;
         private readonly BombController _bombController;
+        private readonly GameUiController _gameUiController;
         private readonly Player _player;
 
         public MainGameController(
@@ -33,6 +34,7 @@ namespace PiggerBomber
 
         public override void Start()
         {
+            Time.timeScale = 1f;
             _player.gameObject.SetActive(true);
             _gridController.Start();
             _treesViewController.Start();

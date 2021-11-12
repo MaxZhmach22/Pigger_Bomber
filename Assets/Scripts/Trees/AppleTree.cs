@@ -15,7 +15,7 @@ internal sealed class AppleTree : MonoBehaviour
     private SpriteRenderer _spriteRenderer;
     private float _timer;
     private float _rndTimeOfGrow;
-    private bool _isGrowedUp;
+
     private int _spriteIndex = 0;
     private int _matureTreeSprite = 7;
     private Vector2Int _indexInGridArray;
@@ -30,7 +30,7 @@ internal sealed class AppleTree : MonoBehaviour
 
     private void OnDestroy()
     {
-        StopAllCoroutines();
+        StopCoroutine(Grow());
     }
 
     public void SetTreeIndex(int x, int y)
@@ -41,6 +41,9 @@ internal sealed class AppleTree : MonoBehaviour
 
     private IEnumerator Grow()
     {
+        if (!gameObject.activeInHierarchy)
+            yield break;
+
         while (true)
         {
             _timer += Time.deltaTime;
