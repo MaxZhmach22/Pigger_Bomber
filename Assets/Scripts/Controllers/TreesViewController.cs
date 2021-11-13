@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 using UniRx;
@@ -8,20 +7,28 @@ namespace PiggerBomber
 {
     internal sealed class TreesViewController : BaseController, ITreesViewController
     {
+        #region Fields
+
         [Inject] private AppleTree _appleTree;
         [Inject] private DiContainer _diContainer;
         [Inject] private GridController _gridController;
 
         private readonly List<GameObject> _trees;
         private readonly Transform _parentTransform;
-        public readonly List<Vector2Int> _matureTreesPositionList;
+        public  readonly List<Vector2Int> _matureTreesPositionList;
         private Dictionary<Vector2Int, GameObject> _freePositionsInGrid;
-        private CompositeDisposable _disposables; 
-        private int _upperBoundX; 
+        private CompositeDisposable _disposables;
+        private int _upperBoundX;
         private int _upperBoundY;
 
         public IReadOnlyList<Vector2Int> MatureTreesPositionList => _matureTreesPositionList;
-        public IReadOnlyDictionary<Vector2Int, GameObject> FreePositionInGrid => _freePositionsInGrid; 
+        public IReadOnlyDictionary<Vector2Int, GameObject> FreePositionInGrid => _freePositionsInGrid;
+
+        #endregion
+
+
+        #region ClassLifeCycles
+
 
         public TreesViewController()
         {
@@ -44,25 +51,26 @@ namespace PiggerBomber
         {
             _disposables.Clear();
             foreach (var tree in _trees)
-            {
-                tree.gameObject.SetActive(false);
-            }
+                GameObject.Destroy(tree);
+
             _trees.Clear();
             foreach (var item in _freePositionsInGrid)
-            {
-                item.Value.gameObject.SetActive(false);
-            }
+                GameObject.Destroy(item.Value);
+
             _freePositionsInGrid.Clear();
             _matureTreesPositionList.Clear();
-
         }
+
+
+        #endregion
+
+
+        #region Methods
 
         private void SubscribeOnTreesEvent()
         {
             foreach (var tree in _trees)
-            {
                 tree.GetComponent<AppleTree>().MatureTreePosition.Subscribe(position => CheckMatureTrees(position)).AddTo(_disposables);
-            }
         }
 
         private void CheckMatureTrees(Vector2Int position)
@@ -89,14 +97,14 @@ namespace PiggerBomber
                         _trees.Add(tree);
                     }
                     else
-                        _freePositionsInGrid.Add(new Vector2Int(x,y), _gridController.CurrentGridArray[x,y]);
+                        _freePositionsInGrid.Add(new Vector2Int(x, y), _gridController.CurrentGridArray[x, y]);
                 }
             }
         }
 
         private bool CheckValue(int x, int y, int upperBoundX, int upperBoundY)
         {
-            if (y == 0 || y  == upperBoundY)
+            if (y == 0 || y == upperBoundY)
                 return false;
             if (x == 0 || x == upperBoundX)
                 return false;
@@ -106,7 +114,8 @@ namespace PiggerBomber
                 return false;
 
             return true;
-        }
+        } 
 
+        #endregion
     }
 }

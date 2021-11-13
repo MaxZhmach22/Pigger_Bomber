@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UniRx;
@@ -6,6 +7,8 @@ using Zenject;
 
 internal sealed class AppleTree : MonoBehaviour
 {
+    #region Fields
+
     public Subject<Vector2Int> MatureTreePosition = new Subject<Vector2Int>();
 
     [SerializeField] private List<Sprite> _sprites;
@@ -15,29 +18,30 @@ internal sealed class AppleTree : MonoBehaviour
     private SpriteRenderer _spriteRenderer;
     private float _timer;
     private float _rndTimeOfGrow;
-
-    private int _spriteIndex = 0;
+    private int _spriteIndex;
     private int _matureTreeSprite = 7;
-    private Vector2Int _indexInGridArray;
+    private Vector2Int _indexInGridArray; 
+
+    #endregion
+
+
+    #region ClassLifeCycles
 
     private void Start()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         RandomizeTimer();
+        _spriteIndex = UnityEngine.Random.Range(0, _sprites.Count - 1);
         _spriteRenderer.sprite = _sprites[_spriteIndex];
         MainThreadDispatcher.StartFixedUpdateMicroCoroutine(Grow());
+        Grow().ToObservable().Subscribe().AddTo(this);
     }
 
-    private void OnDestroy()
-    {
-        StopCoroutine(Grow());
-    }
 
-    public void SetTreeIndex(int x, int y)
-    {
-        _indexInGridArray.x = x;
-        _indexInGridArray.y = y;
-    }
+    #endregion
+
+
+    #region UniRxCoroutine
 
     private IEnumerator Grow()
     {
@@ -47,7 +51,7 @@ internal sealed class AppleTree : MonoBehaviour
         while (true)
         {
             _timer += Time.deltaTime;
-                yield return null;
+            yield return null;
 
             if (_timer < _rndTimeOfGrow)
                 continue;
@@ -60,21 +64,34 @@ internal sealed class AppleTree : MonoBehaviour
             else
                 _spriteIndex++;
 
-            if(_spriteIndex == _matureTreeSprite)
+            if (_spriteIndex == _matureTreeSprite)
             {
                 SendPosition();
             }
-            
 
-            _spriteRenderer.sprite = _sprites[_spriteIndex];
+            if (_spriteRenderer != null)
+                _spriteRenderer.sprite = _sprites[_spriteIndex];
             _timer = 0;
         }
+    }
+
+    #endregion
+
+
+    #region Methods
+
+    public void SetTreeIndex(int x, int y)
+    {
+        _indexInGridArray.x = x;
+        _indexInGridArray.y = y;
     }
 
     private void SendPosition() =>
         MatureTreePosition.OnNext(_indexInGridArray);
 
     private void RandomizeTimer() =>
-        _rndTimeOfGrow = UnityEngine.Random.Range(_minTimeValue, _maxTimeValue);
+        _rndTimeOfGrow = UnityEngine.Random.Range(_minTimeValue, _maxTimeValue); 
+
+    #endregion
 
 }

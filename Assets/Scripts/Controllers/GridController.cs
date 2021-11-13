@@ -1,50 +1,49 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UniRx;
-using System;
 
 namespace PiggerBomber
 {
     internal sealed class GridController : BaseController, IGridController
     {
-        private readonly GridControllerView _gridControllerView;
+        #region Fields
 
-        private int _startX;
-        private int _startY;
+        public Subject<bool> PlayersNewPosition = new Subject<bool>();
+        public GameObject[,] CurrentGridArray { get; private set; }
+        public bool FindDistance = false;
+
+
+        private readonly GridControllerView _gridControllerView;
+        private float _scaleX => _gridControllerView.Grid.cellSize.x;
+        private Transform _parentTransform;
+        private Vector3 _leftBorromLocation = new Vector3(0, 0, 0);
         private int _endX;
         private int _endY;
 
-        public bool FindDistance = false;
+        #endregion
 
-        private Transform _parentTransform;
-        private Vector3 _leftBorromLocation = new Vector3(0, 0, 0);
-        private float _scaleX => _gridControllerView.Grid.cellSize.x;
-        public GameObject[,] CurrentGridArray { get; private set; }
-        public IReadOnlyList<GameObject> Path => _path;
-        
-        private List<GameObject> _path = new List<GameObject>();
-        public Subject<bool> PlayersNewPosition = new Subject<bool>();
+        #region ClassLifeCycles
 
-        public GridController(GridControllerView gridControllerView)
-        {
+        public GridController(GridControllerView gridControllerView) =>
             _gridControllerView = gridControllerView;
-        } 
 
         public override void Start()
         {
-            CurrentGridArray = new GameObject[_gridControllerView.Columns, _gridControllerView.Rows];
-            _parentTransform = new GameObject("GridArray").transform;
+            CurrentGridArray ??= new GameObject[_gridControllerView.Columns, _gridControllerView.Rows];
+            _parentTransform ??= new GameObject("GridArray").transform;
             if (_gridControllerView.GridPointPrefab)
                 GenerateGrid();
         }
+
         public override void Dispose()
         {
             foreach (GameObject gameObject in CurrentGridArray)
-                gameObject.SetActive(false);
-            Array.Clear(CurrentGridArray, 0, CurrentGridArray.Length);
-            _path.Clear();
-            _parentTransform.gameObject.SetActive(false);
+                GameObject.Destroy(gameObject);
         }
+
+        #endregion
+
+        #region Methods
 
         private void GenerateGrid()
         {
@@ -66,17 +65,10 @@ namespace PiggerBomber
             }
         }
 
-        public void SetNewPath(Vector2Int playerPosition)
-        {
-            _endX = playerPosition.x;
-            _endY = playerPosition.y;
-            PlayersNewPosition.OnNext(true);
-        }
-
-        public List<GameObject> CreateNewPath(int startX, int startY)
+        public List<GameObject> CreateNewPath(int startX, int startY, Vector2Int playerPos)
         {
             SetDistance(startX, startY);
-            return SetPath(_endX, _endY);
+            return SetPath(playerPos.x, playerPos.y);
         }
 
         public Vector2Int GenerateRandomPointInGrid()
@@ -89,6 +81,7 @@ namespace PiggerBomber
                 var y = UnityEngine.Random.Range(CurrentGridArray.GetLowerBound(1), CurrentGridArray.GetUpperBound(1));
                 gridStatView = CurrentGridArray[x, y].GetComponent<GridStatView>();
                 randomPos = new Vector2Int(x, y);
+
             } while (gridStatView == null);
 
             return randomPos;
@@ -99,11 +92,11 @@ namespace PiggerBomber
             InitialSetup(startX, startY);
             for (int step = 1; step < _gridControllerView.Rows * _gridControllerView.Columns; step++)
             {
-                foreach (GameObject gameObject in CurrentGridArray) 
+                foreach (GameObject gameObject in CurrentGridArray)
                 {
-                   var gridStatView = gameObject.GetComponent<GridStatView>();
-                    if(gridStatView != null && gridStatView.visited == step - 1)
-                      TestFourDirections(gridStatView.x, gridStatView.y, step);
+                    var gridStatView = gameObject.GetComponent<GridStatView>();
+                    if (gridStatView != null && gridStatView.visited == step - 1)
+                        TestFourDirections(gridStatView.x, gridStatView.y, step);
                 }
             }
         }
@@ -114,7 +107,7 @@ namespace PiggerBomber
             {
                 gameObject.TryGetComponent<GridStatView>(out var gridStatView);
                 if (gridStatView != null)
-                    gridStatView.visited = -1; 
+                    gridStatView.visited = -1;
             }
             CurrentGridArray[startX, startY].GetComponent<GridStatView>().visited = 0;
         }
@@ -124,7 +117,7 @@ namespace PiggerBomber
             int step;
             List<GameObject> tempList = new List<GameObject>();
             List<GameObject> path = new List<GameObject>();
-            if(CurrentGridArray[endX, endY] && CurrentGridArray[endX, endY].GetComponent<GridStatView>().visited > 0)
+            if (CurrentGridArray[endX, endY] && CurrentGridArray[endX, endY].GetComponent<GridStatView>().visited > 0)
             {
                 path.Add(CurrentGridArray[endX, endY]);
                 step = CurrentGridArray[endX, endY].GetComponent<GridStatView>().visited - 1;
@@ -134,7 +127,7 @@ namespace PiggerBomber
                 Debug.Log("No PATH!");
                 return null;
             }
-            for (; step > -1; step --)
+            for (; step > -1; step--)
             {
                 if (TestDirection(endX, endY, step, Directions.Up))
                     tempList.Add(CurrentGridArray[endX, endY + 1]);
@@ -143,35 +136,30 @@ namespace PiggerBomber
                 if (TestDirection(endX, endY, step, Directions.Down))
                     tempList.Add(CurrentGridArray[endX, endY - 1]);
                 if (TestDirection(endX, endY, step, Directions.Left))
-                    tempList.Add(CurrentGridArray[endX-1, endY]);
+                    tempList.Add(CurrentGridArray[endX - 1, endY]);
 
                 GameObject tempObj = FindClosest(CurrentGridArray[endX, endY].transform, tempList);
-                if(tempObj.TryGetComponent(out GridStatView gridStatView))
+                if (tempObj.TryGetComponent(out GridStatView gridStatView))
                 {
                     path.Add(tempObj);
                     endX = tempObj.GetComponent<GridStatView>().x;
                     endY = tempObj.GetComponent<GridStatView>().y;
                     tempList.Clear();
-                } 
-            }
-            foreach (var gameObject in _path)
-            {
-                var sr = gameObject.GetComponent<SpriteRenderer>();
-                sr.color = new Color(0, 1, 1);
+                }
             }
             return path;
         }
 
         private void TestFourDirections(int x, int y, int step)
         {
-            if(TestDirection(x, y, -1, Directions.Up))
+            if (TestDirection(x, y, -1, Directions.Up))
                 SetVisited(x, y + 1, step);
             if (TestDirection(x, y, -1, Directions.Right))
                 SetVisited(x + 1, y, step);
             if (TestDirection(x, y, -1, Directions.Down))
                 SetVisited(x, y - 1, step);
             if (TestDirection(x, y, -1, Directions.Left))
-                SetVisited(x-1, y, step);
+                SetVisited(x - 1, y, step);
         }
 
 
@@ -225,7 +213,7 @@ namespace PiggerBomber
             int indexNumber = 0;
             for (int i = 0; i < list.Count; i++)
             {
-                if(Vector3.Distance(targetLoacation.position, list[i].transform.position) < currentDistance)
+                if (Vector3.Distance(targetLoacation.position, list[i].transform.position) < currentDistance)
                 {
                     currentDistance = Vector3.Distance(targetLoacation.position, list[i].transform.position);
                     indexNumber = i;
@@ -234,6 +222,7 @@ namespace PiggerBomber
             return list[indexNumber];
         }
 
+        #endregion
 
     }
 }

@@ -28,7 +28,6 @@ namespace PiggerBomber
         public abstract void SetSprites(Directions spriteStates);
         protected abstract void ChangeSpriteDirections(Directions directions, List<Sprite> spritesList);
         public abstract void GetDirty();
-
-
+        public abstract void ResetAllValues();
     }
 }

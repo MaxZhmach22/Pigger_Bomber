@@ -1,31 +1,27 @@
 ﻿using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
-using Zenject;
 
 namespace PiggerBomber
 {
     internal sealed class HumanEnemy : BaseEnemy
     {
-        private Player _player;
+        #region Fields
+
+        private IEnemiesMovingController _enemiesMovingController;
         private bool _isDirty;
-        public bool IsDirty => _isDirty;
+        public bool IsDirty { get; set; }
         public override int PathIndex { get; set; }
         public override float CurrentSpeed => _currentSpeed;
         public override List<GameObject> Path { get; set; }
         public override bool IsMoving { get; set; }
 
-        public Subject<bool> SeePlayer = new Subject<bool>();
+        #endregion
 
-        [Inject]
-        private void Init(Player player)
-        {
-            _player = player;
-        }
+
+        #region ClassLifeCycles
 
         private void Start()
         {
-            gameObject.SetActive(false);
             _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             _currentState = SpriteStates.Common;
             _currentDirection = Directions.Left;
@@ -33,6 +29,21 @@ namespace PiggerBomber
             _collider = GetComponent<Collider2D>();
             Path = new List<GameObject>();
             IsMoving = false;
+            gameObject.SetActive(false);
+        }
+        public void Init(IEnemiesMovingController enemiesMovingController) =>
+            _enemiesMovingController = enemiesMovingController;
+
+        #endregion
+
+
+        #region Methods
+
+        public override void ResetAllValues()
+        {
+            _currentDirection = Directions.Left;
+            _currentSpeed = CommonWalkingSpeed;
+            _currentState = SpriteStates.Common;
         }
 
         public float SetSpeed()
@@ -54,7 +65,7 @@ namespace PiggerBomber
             _isDirty = true;
             _collider.enabled = true;
             _currentState = SpriteStates.Dirty;
-            _currentSpeed = SetSpeed(); 
+            _currentSpeed = SetSpeed();
             SetSprites(_currentDirection);
         }
 
@@ -102,12 +113,13 @@ namespace PiggerBomber
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
+
             if (collision.gameObject.CompareTag("Player"))
             {
                 _currentState = SpriteStates.Angry;
                 _currentSpeed = SetSpeed();
                 SetSprites(_currentDirection);
-                SeePlayer.OnNext(true);
+                _enemiesMovingController.SetHumanPath(true);
             }
         }
 
@@ -118,8 +130,11 @@ namespace PiggerBomber
                 _currentState = SpriteStates.Common;
                 _currentSpeed = SetSpeed();
                 SetSprites(_currentDirection);
-                SeePlayer.OnNext(false);
+                _enemiesMovingController.SetHumanPath(false);
             }
-        }
+        } 
+        #endregion
+
+
     }
 }

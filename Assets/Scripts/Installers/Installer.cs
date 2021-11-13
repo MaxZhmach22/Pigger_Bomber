@@ -5,6 +5,7 @@ namespace PiggerBomber
 {
     internal sealed class Installer : MonoInstaller
     {
+        [Header("Prefabs")]
         [SerializeField] private Player _player;
         [SerializeField] private DynamicJoystick _dynamicJoystick;
         [SerializeField] private LevelView _levelView;
@@ -80,8 +81,8 @@ namespace PiggerBomber
             Container.BindInterfacesAndSelfTo<GameUiController>().AsSingle();
             GridControllerBindings();
             TreesAndApplesControlBindings();
-            EnemiesControllerBindings();
             BombControllerBindings();
+            EnemiesControllerBindings();
 
         }
 
@@ -112,18 +113,17 @@ namespace PiggerBomber
         private void EnemiesControllerBindings()
         {
             var enemies = new GameObject("Enemies").transform;
-            Container.BindInterfacesAndSelfTo<EnemiesMovingController>().AsSingle();
             var dogEnemy = Container.InstantiatePrefabForComponent<DogEnemy>(_dogEnemy, enemies);
             var humanEnemy = Container.InstantiatePrefabForComponent<HumanEnemy>(_humanEnemy, enemies);
             Container.Bind<DogEnemy>().FromInstance(dogEnemy).AsSingle();
             Container.Bind<HumanEnemy>().FromInstance(humanEnemy).AsSingle();
+            Container.BindInterfacesAndSelfTo<EnemiesMovingController>().AsSingle();
         }
 
         private void BombControllerBindings()
         {
             Container.BindInterfacesAndSelfTo<BombController>().AsSingle();
-            var bomb = Container.InstantiatePrefabForComponent<Bomb>(_bomb);
-            Container.Bind<Bomb>().FromInstance(bomb).AsSingle();
+            Container.Bind<Bomb>().FromInstance(_bomb).AsSingle();
         }
     }
 }

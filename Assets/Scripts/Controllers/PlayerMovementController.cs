@@ -41,13 +41,19 @@ namespace PiggerBomber
         public override void Start() =>
             SetStartPlayerPosition();
 
-        public override void Dispose() =>
-              Debug.Log($"{nameof(PlayerMovementController)} is Disposed");
+        public override void Dispose()
+        {
+            _origPosition = default;
+            SetStartPlayerPosition();
+            _player.CurrentIndexInArray = _startPosition;
+            Debug.Log($"{nameof(PlayerMovementController)} is Disposed");
+        }
+
 
         #endregion
 
 
-        #region FraemWorkUpdateMethods
+        #region ZenjectUpdateMethods
 
         public void Tick()
         {
@@ -73,14 +79,14 @@ namespace PiggerBomber
             float elapsedTime = 0;
             _origPosition = _player.transform.position;
             _targetPosition = direction;
-            while (elapsedTime < _timeToMove)
+            _player.CurrentIndexInArray = newIndex;
+            while (elapsedTime * _player.PlayerMovementSpeed < _timeToMove)
             {
-                _player.transform.position = Vector3.Lerp(_origPosition, _targetPosition, (elapsedTime / _timeToMove));
+                _player.transform.position = Vector3.Lerp(_origPosition, _targetPosition, (elapsedTime * _player.PlayerMovementSpeed / _timeToMove));
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
             _player.transform.position = _targetPosition;
-            _player.CurrentIndexInArray = newIndex;
             _isMoving = false;
         } 
 

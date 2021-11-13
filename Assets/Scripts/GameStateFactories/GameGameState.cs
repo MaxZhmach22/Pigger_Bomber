@@ -8,6 +8,8 @@ namespace PiggerBomber
         private MainGameController _mainGameController;
         private readonly MainGameController.Factory _mainGameControllerFactory;
 
+        #region ClassLifeCycles
+
         public GameGameState(MainGameController.Factory gameProcessControllerFactory) =>
              _mainGameControllerFactory = gameProcessControllerFactory;
 
@@ -19,6 +21,9 @@ namespace PiggerBomber
 
         public override void Dispose() =>
             _mainGameController.Dispose();
+
+        #endregion
+
 
         public override void Update() { }
 

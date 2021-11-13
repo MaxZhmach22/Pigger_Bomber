@@ -5,6 +5,8 @@ namespace PiggerBomber
 {
     internal sealed class MainGameController : BaseController
     {
+        #region Fields
+
         private readonly PlayerMovementController _playerMovementController;
         private readonly GridController _gridController;
         private readonly TreesViewController _treesViewController;
@@ -14,6 +16,10 @@ namespace PiggerBomber
         private readonly GameUiController _gameUiController;
         private readonly Player _player;
 
+        #endregion
+
+        #region ClassLifeCycles
+
         public MainGameController(
              PlayerMovementController playerMovementController,
              GridController gridController,
@@ -21,6 +27,7 @@ namespace PiggerBomber
              ApplesController applesController,
              EnemiesMovingController enemiesMovingController,
              BombController bombController,
+             GameUiController gameUiController,
              Player player)
         {
             _playerMovementController = playerMovementController;
@@ -29,12 +36,12 @@ namespace PiggerBomber
             _applesController = applesController;
             _enemiesMovingController = enemiesMovingController;
             _bombController = bombController;
+            _gameUiController = gameUiController;
             _player = player;
         }
 
         public override void Start()
         {
-            Time.timeScale = 1f;
             _player.gameObject.SetActive(true);
             _gridController.Start();
             _treesViewController.Start();
@@ -42,6 +49,7 @@ namespace PiggerBomber
             _playerMovementController.Start();
             _enemiesMovingController.Start();
             _bombController.Start();
+            _gameUiController.Start();
         }
 
         public override void Dispose()
@@ -52,8 +60,12 @@ namespace PiggerBomber
             _applesController?.Dispose();
             _enemiesMovingController?.Dispose();
             _bombController?.Dispose();
+            _gameUiController?.Dispose();
             Debug.Log(nameof(MainGameController) + " Disposed");
         }
+
+        #endregion
+
 
         public sealed class Factory : PlaceholderFactory<MainGameController>
         {

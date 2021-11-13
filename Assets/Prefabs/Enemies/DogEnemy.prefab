@@ -24,9 +24,9 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5712062924959687059}
-  m_LocalRotation: {x: -0.38196352, y: -0.056642875, z: 0.023462245, w: 0.92214155}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.9070435, y: 0.8333333, z: 0.8343644}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 5712062925282147851}
   m_RootOrder: 0
@@ -70,7 +70,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_Sprite: {fileID: 1480917699468073914, guid: 5bef622eb044e86489640f502b6e998e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -109,7 +109,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5712062925282147863}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 17.616, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 5712062924959687058}
@@ -139,13 +139,13 @@ MonoBehaviour:
   - {fileID: 5361668627280901228, guid: f68b41580b9de604da516112de6b4231, type: 3}
   - {fileID: -2359721649071251821, guid: f68b41580b9de604da516112de6b4231, type: 3}
   <DirtySprites>k__BackingField:
-  - {fileID: 6612374894605627977, guid: f68b41580b9de604da516112de6b4231, type: 3}
-  - {fileID: 748373261593968425, guid: f68b41580b9de604da516112de6b4231, type: 3}
-  - {fileID: 5361668627280901228, guid: f68b41580b9de604da516112de6b4231, type: 3}
-  - {fileID: -2359721649071251821, guid: f68b41580b9de604da516112de6b4231, type: 3}
-  <CommonWalkingSpeed>k__BackingField: 1
-  <AngryWalkingSpeed>k__BackingField: 1.5
-  <DirtyWalkingSpeed>k__BackingField: 0.7
+  - {fileID: 4117095999389584143, guid: 506a221c1f2f9734fb690d3e305380c0, type: 3}
+  - {fileID: 4675298679670731492, guid: 506a221c1f2f9734fb690d3e305380c0, type: 3}
+  - {fileID: -671076752124577411, guid: 506a221c1f2f9734fb690d3e305380c0, type: 3}
+  - {fileID: -6343356305408293647, guid: 506a221c1f2f9734fb690d3e305380c0, type: 3}
+  <CommonWalkingSpeed>k__BackingField: 1.2
+  <AngryWalkingSpeed>k__BackingField: 2
+  <DirtyWalkingSpeed>k__BackingField: 0.5
 --- !u!61 &5712062925282147861
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -170,7 +170,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 5.5, y: 5.5}
   m_EdgeRadius: 0
 --- !u!50 &5712062925282147862
 Rigidbody2D:

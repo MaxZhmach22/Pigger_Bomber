@@ -1,26 +1,30 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UniRx;
 using UnityEngine;
 using Zenject;
 
 namespace PiggerBomber
 {
-    internal sealed class ApplesController : BaseController, IAppleController, IEatApple
+    internal sealed class ApplesController : BaseController, IAppleController, IEatApple, ITickable
     {
+        #region Fields
 
         [Inject] private Apple _apple;
-        [Inject] private DiContainer _diContainer; 
+        [Inject] private DiContainer _diContainer;
 
         private readonly TreesViewController _treesViewController;
         private readonly IGridController _gridController;
-        private Subject<int> _onAppleEat = new Subject<int>(); 
+        private Subject<int> _onAppleEat = new Subject<int>();
         private List<Vector3> _freePositionList;
         private List<GameObject> _activeApples;
         private Transform _parentTransform;
         private float _timerSpawnApple = 3;
         private float _timer;
-        public ISubject<int> OnAppleEat => _onAppleEat;
+        private bool _isDisposed;
+        private CompositeDisposable _disposables = new CompositeDisposable();
+        public ISubject<int> OnAppleEat => _onAppleEat; 
+
+        #endregion
 
 
         #region ClassLifeCycles
@@ -37,36 +41,45 @@ namespace PiggerBomber
         }
         public override void Start()
         {
-            MainThreadDispatcher.StartFixedUpdateMicroCoroutine(SpawnApple());
+            _isDisposed = false;
+            _parentTransform.gameObject.SetActive(true);
         }
 
         public override void Dispose()
         {
+            _isDisposed = true;
             _parentTransform.gameObject.SetActive(false);
             foreach (var apple in _activeApples)
-            {
-                apple.SetActive(false);
-            }
+               GameObject.Destroy(apple);
             _activeApples.Clear();
             _freePositionList.Clear();
+            _disposables.Clear();
+            _timer = 0;
+
         }
 
         #endregion
 
-        private IEnumerator SpawnApple()
+
+        #region ZenjectUpdateMethods
+
+        public void Tick()
         {
-            while (true)
+            if (_isDisposed)
+                return;
+
+            _timer += Time.deltaTime;
+            if (_timer >= _timerSpawnApple)
             {
-                _timer += Time.deltaTime;
-                yield return null;
-
-                if (_timer < _timerSpawnApple)
-                    continue;
-
                 CreateApple();
-
+                _timer = 0;
             }
         }
+
+        #endregion
+
+
+        #region Methods
 
         private void CreateApple()
         {
@@ -78,15 +91,14 @@ namespace PiggerBomber
             CheckOldApples();
             foreach (var trees in _treesViewController.MatureTreesPositionList)
             {
-                CheckFreePosition(_gridController.CurrentGridArray,trees);
+                CheckFreePosition(_gridController.CurrentGridArray, trees);
             }
             apple.transform.position = RandomApplePosition();
-            _timer = 0;
         }
 
         private void CheckOldApples()
         {
-            if(_activeApples.Count > 5)
+            if (_activeApples.Count > 5)
             {
                 var oldApple = _activeApples[0];
                 _activeApples.RemoveAt(0);
@@ -109,12 +121,14 @@ namespace PiggerBomber
         }
 
         private Vector3 RandomApplePosition() =>
-            _freePositionList[UnityEngine.Random.Range((int)0, _freePositionList.Count-1)];
+            _freePositionList[UnityEngine.Random.Range((int)0, _freePositionList.Count - 1)];
 
         public void EatApple(Apple apple)
         {
             _onAppleEat.OnNext(apple.Score);
             _activeApples.Remove(apple.gameObject);
         }
+
+        #endregion
     }
 }

@@ -7,6 +7,8 @@ namespace PiggerBomber
     {
         private readonly LooseGameController _looseGameController;
 
+        #region ClassLifeCycles
+
         public EndGameController(
              LooseGameController looseGameController)
         {
@@ -22,7 +24,8 @@ namespace PiggerBomber
         {
             _looseGameController?.Dispose();
             Debug.Log(nameof(MainGameController) + " Disposed");
-        }
+        } 
+        #endregion
 
         public sealed class Factory : PlaceholderFactory<EndGameController>
         {

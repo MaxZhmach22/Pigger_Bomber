@@ -6,8 +6,16 @@ namespace PiggerBomber
 {
     internal sealed class MainMenuController : BaseController
     {
+        #region Fields
+
+        private CompositeDisposable _disposables;
         private readonly MainMenuView _mainMenuView;
-        private readonly Player _player;
+        private readonly Player _player; 
+
+        #endregion
+
+
+        #region ClassLifeCycles
 
         public MainMenuController(
             MainMenuView mainMenuView,
@@ -15,6 +23,7 @@ namespace PiggerBomber
         {
             _mainMenuView = mainMenuView;
             _player = player;
+            _disposables = new CompositeDisposable();
         }
 
         public override void Start()
@@ -24,12 +33,20 @@ namespace PiggerBomber
 
             _mainMenuView.StartGameBtn.OnClickAsObservable()
                 .Subscribe(_ => _player.ChangeState(GameStates.Game))
-                .AddTo(_mainMenuView);
-            _mainMenuView.QuitButton.OnClickAsObservable().Subscribe(_ => Application.Quit()).AddTo(_mainMenuView);
+                .AddTo(_disposables);
+            _mainMenuView.QuitButton
+                .OnClickAsObservable()
+                .Subscribe(_ => Application.Quit()).AddTo(_disposables);
         }
 
-        public override void Dispose() =>
+        public override void Dispose()
+        {
+            _disposables.Clear();
             _mainMenuView.gameObject.SetActive(false);
+        }
+
+        #endregion
+
 
         public class Factory : PlaceholderFactory<MainMenuController>
         {

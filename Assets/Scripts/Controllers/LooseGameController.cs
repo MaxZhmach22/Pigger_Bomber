@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Zenject;
+using UniRx;
 
 namespace PiggerBomber
 {
@@ -7,6 +8,7 @@ namespace PiggerBomber
     {
         #region Fields
 
+        private CompositeDisposable _disposables;
         private readonly LooseMenuView _looseMenuView;
         private readonly Player _player;
 
@@ -21,6 +23,7 @@ namespace PiggerBomber
         {
             _looseMenuView = looseMenuView;
             _player = player;
+            _disposables = new CompositeDisposable();
         }
 
         public override void Start()
@@ -28,14 +31,19 @@ namespace PiggerBomber
             _player.gameObject.SetActive(false);
             Time.timeScale = 0f;
             _looseMenuView.gameObject.SetActive(true);
-            _looseMenuView.QuitButton.onClick.AddListener(() => Application.Quit());
-            _looseMenuView.TryAgainButton.onClick.AddListener(() => _player.ChangeState(GameStates.Game));
+            _looseMenuView.QuitButton
+                .OnClickAsObservable()
+                .Subscribe(_ => Application.Quit()).AddTo(_disposables);
+            _looseMenuView.TryAgainButton
+                .OnClickAsObservable()
+                .Subscribe(_ => _player.ChangeState(GameStates.Start))
+                .AddTo(_disposables);
             SetScoreTxt();
         }
 
-
         public override void Dispose()
         {
+            _disposables.Clear();
             _looseMenuView.gameObject.SetActive(false);
             Debug.Log(nameof(LooseGameController) + " Is Disposed");
         }
@@ -51,6 +59,7 @@ namespace PiggerBomber
         public override void Update() { }
   
         #endregion
+
 
         public sealed class Factory : PlaceholderFactory<LooseGameController>
         {
