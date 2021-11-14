@@ -129,9 +129,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <CommonSpites>k__BackingField:
-  - {fileID: -1146434942223613854, guid: 5bef622eb044e86489640f502b6e998e, type: 3}
-  - {fileID: 1480917699468073914, guid: 5bef622eb044e86489640f502b6e998e, type: 3}
   - {fileID: 4232618656017457076, guid: 5bef622eb044e86489640f502b6e998e, type: 3}
+  - {fileID: 1480917699468073914, guid: 5bef622eb044e86489640f502b6e998e, type: 3}
+  - {fileID: -1146434942223613854, guid: 5bef622eb044e86489640f502b6e998e, type: 3}
   - {fileID: 9118213209582376027, guid: 5bef622eb044e86489640f502b6e998e, type: 3}
   <AngrySprites>k__BackingField:
   - {fileID: 6612374894605627977, guid: f68b41580b9de604da516112de6b4231, type: 3}
@@ -145,7 +145,7 @@ MonoBehaviour:
   - {fileID: -6343356305408293647, guid: 506a221c1f2f9734fb690d3e305380c0, type: 3}
   <CommonWalkingSpeed>k__BackingField: 1.2
   <AngryWalkingSpeed>k__BackingField: 2
-  <DirtyWalkingSpeed>k__BackingField: 0.5
+  <DirtyWalkingSpeed>k__BackingField: 1
 --- !u!61 &5712062925282147861
 BoxCollider2D:
   m_ObjectHideFlags: 0

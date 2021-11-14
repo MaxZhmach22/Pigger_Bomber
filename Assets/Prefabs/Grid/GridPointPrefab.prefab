@@ -9,7 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 278906000110214266}
-  - component: {fileID: 708553517423920987}
+  - component: {fileID: 7671388243147397808}
+  - component: {fileID: 4564624977379352865}
   m_Layer: 0
   m_Name: GridPointPrefab
   m_TagString: Untagged
@@ -31,7 +32,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &708553517423920987
+--- !u!114 &7671388243147397808
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,9 +41,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 2321030068620219687}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b455b34fd7da9042ba4af642ebb1cb8, type: 3}
+  m_Script: {fileID: 11500000, guid: 1c7b582a10e3d624f81efd20f37d27df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visited: 1
-  x: 0
-  y: 0
+  <EnemyType>k__BackingField: 2
+--- !u!114 &4564624977379352865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2321030068620219687}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01e8737793e970e469ad7e36f64fc9ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <EnemyType>k__BackingField: 1

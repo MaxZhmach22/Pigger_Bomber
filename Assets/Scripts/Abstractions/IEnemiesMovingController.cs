@@ -4,5 +4,7 @@
     {
         void SetDogPath(bool value);
         void SetHumanPath(bool value);
+
+        void DirtyWalk(BaseEnemy enemy);
     }
 }

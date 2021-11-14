@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
 
 namespace PiggerBomber
@@ -9,14 +8,15 @@ namespace PiggerBomber
         #region Fields
 
         private IEnemiesMovingController _enemiesMovingController;
-        public Subject<bool> SeePlayer = new Subject<bool>();
         public override bool IsMoving { get; set; }
         public bool IsDirty { get; set; }
         public override int PathIndex { get; set; }
         public override float CurrentSpeed => _currentSpeed;
+        public override EnemiesType EnemiesType => EnemiesType.Dog;
         public override List<GameObject> Path { get; set; } 
 
         #endregion
+
 
         #region ClassLifeCycles
 
@@ -43,6 +43,8 @@ namespace PiggerBomber
             _currentDirection = Directions.Left;
             _currentSpeed = CommonWalkingSpeed;
             _currentState = SpriteStates.Common;
+            _collider.enabled = true;
+            IsDirty = false;
         }
 
         public float SetSpeed()
@@ -61,9 +63,10 @@ namespace PiggerBomber
 
         public override void GetDirty()
         {
-            _collider.enabled = true;
+            _collider.enabled = false;
             _currentState = SpriteStates.Dirty;
             _currentSpeed = SetSpeed();
+            IsDirty = true;
             SetSprites(_currentDirection);
         }
 
@@ -111,7 +114,7 @@ namespace PiggerBomber
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            if (collision.gameObject.CompareTag("Player"))
+            if (collision.gameObject.CompareTag("Player") && !IsDirty)
             {
                 _currentState = SpriteStates.Angry;
                 _currentSpeed = SetSpeed();
@@ -122,7 +125,7 @@ namespace PiggerBomber
 
         private void OnTriggerExit2D(Collider2D collision)
         {
-            if (collision.gameObject.CompareTag("Player"))
+            if (collision.gameObject.CompareTag("Player") && !IsDirty)
             {
                 _currentState = SpriteStates.Common;
                 _currentSpeed = SetSpeed();

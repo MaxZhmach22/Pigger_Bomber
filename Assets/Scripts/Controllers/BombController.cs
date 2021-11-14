@@ -14,11 +14,11 @@ namespace PiggerBomber
         private readonly IEatApple _eatApple;
         private readonly EnemiesMovingController _enemiesMovingController;
 
-        private CompositeDisposable _disposables;
-        private int _countOffApplesToEat = 2;
-        private int _apples = 0;
         private float _timer;
         private float _exploseTimer;
+        private int _apples = 0;
+        private int _countOffApplesToEat = 2;
+        private CompositeDisposable _disposables;
 
         #endregion
 
@@ -42,8 +42,10 @@ namespace PiggerBomber
 
         public override void Start()
         {
-            _eatApple.OnAppleEat.Subscribe(_ => CheckEatenApples()).AddTo(_disposables);
-            _bombSetter.BombIsPLanted.Subscribe(_ => ResetApplesCounter()).AddTo(_disposables);
+            _eatApple.OnAppleEat
+                .Subscribe(_ => CheckEatenApples()).AddTo(_disposables);
+            _bombSetter.BombIsPLanted
+                .Subscribe(_ => ResetApplesCounter()).AddTo(_disposables);
             _bomb.gameObject.SetActive(false);
         }
 
@@ -65,6 +67,7 @@ namespace PiggerBomber
         {
             if (_bomb.gameObject.activeInHierarchy)
             {
+                _plantBombButton.SetButtonActive(false);
                 _timer += Time.deltaTime;
                 _exploseTimer += Time.deltaTime;
 
@@ -87,11 +90,11 @@ namespace PiggerBomber
         {
             _bomb.OnExplosed();
             _exploseTimer = 0;
-            _plantBombButton.SetButtonActive(false);
+
             if (Vector3.Distance(_enemiesMovingController.GetDogEnemyPosition(), _bomb.transform.position) < _bomb.ExplosionRadius)
-                _enemiesMovingController.DogEnemy.GetDirty();
+                _enemiesMovingController.DirtyWalk(_enemiesMovingController.DogEnemy);
             if (Vector3.Distance(_enemiesMovingController.GetHumanEnemyPosition(), _bomb.transform.position) < _bomb.ExplosionRadius)
-                _enemiesMovingController.HumanEnemy.GetDirty();
+                _enemiesMovingController.DirtyWalk(_enemiesMovingController.HumanEnemy);
         }
 
         private void ResetApplesCounter() =>

@@ -61,9 +61,9 @@ MonoBehaviour:
   - {fileID: -7334331953504848966, guid: c50b1b5cfab52334d900d4e25646c695, type: 3}
   - {fileID: -7363812799561630615, guid: c50b1b5cfab52334d900d4e25646c695, type: 3}
   - {fileID: -5117249517182225887, guid: c50b1b5cfab52334d900d4e25646c695, type: 3}
-  <CommonWalkingSpeed>k__BackingField: 1.2
-  <AngryWalkingSpeed>k__BackingField: 2
-  <DirtyWalkingSpeed>k__BackingField: 0.72
+  <CommonWalkingSpeed>k__BackingField: 1.4
+  <AngryWalkingSpeed>k__BackingField: 2.5
+  <DirtyWalkingSpeed>k__BackingField: 1
 --- !u!50 &8403515935438226421
 Rigidbody2D:
   serializedVersion: 4

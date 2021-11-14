@@ -114,7 +114,7 @@ namespace PiggerBomber
                 for (int j = -1; j <= 1; j++)
                 {
                     var gameObject = gridArray[currentMatureTreePosition.x + i, currentMatureTreePosition.y + j];
-                    if (gameObject.TryGetComponent<GridStatView>(out var gridStatView))
+                    if (gameObject.TryGetComponent<HumanGridStat>(out var gridStatView))
                         _freePositionList.Add(gridStatView.transform.position);
                 }
             }

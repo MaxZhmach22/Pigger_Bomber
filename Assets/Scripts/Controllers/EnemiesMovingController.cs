@@ -69,12 +69,16 @@ namespace PiggerBomber
             _humanSeePlayer = false;
             _dogSeePlayer = false;
         }
+
         public override void Dispose()
         {
+            
             HumanEnemy.ResetAllValues();
             DogEnemy.ResetAllValues();
             SetStartPoint();
             _disposables.Clear();
+            HumanEnemy.gameObject.SetActive(false);
+            DogEnemy.gameObject.SetActive(false);
         }
 
 
@@ -111,19 +115,37 @@ namespace PiggerBomber
         private void RandomPointToWalk(int currentPosX, int currentPosY, BaseEnemy enemy)
         {
             enemy.Path.Clear();
-            var randomPoint = _gridController.GenerateRandomPointInGrid();
-            _gridController.SetDistance(currentPosX, currentPosY);
-            enemy.Path = _gridController.SetPath(randomPoint.x, randomPoint.y);
-            if (enemy.PathIndex == enemy.PathIndex - 1)
+            enemy.ResetAllValues();
+            var randomPoint = _gridController.GenerateRandomPointInGrid(enemy.EnemiesType, new Vector2Int(currentPosX, currentPosY));
+            enemy.Path = _gridController.CreateNewPath(currentPosX, currentPosY, randomPoint, enemy.EnemiesType);
+            if (enemy.Path == null)
                 RandomPointToWalk(currentPosX, currentPosY, enemy);
-
             enemy.PathIndex = enemy.Path.Count - 1;
+        }
+
+        private void DirtWalkToStartPoint(int currentPosX, int currentPosY, BaseEnemy enemy)
+        {
+            switch (enemy.EnemiesType)
+            {
+                case EnemiesType.Dog:
+                    enemy.Path.Clear();
+                    enemy.Path = _gridController.CreateNewPath(currentPosX, currentPosY, _startPosDog, enemy.EnemiesType);
+                    enemy.PathIndex = enemy.Path.Count - 1;
+                    break;
+                case EnemiesType.Human:
+                    enemy.Path.Clear();
+                    enemy.Path = _gridController.CreateNewPath(currentPosX, currentPosY, _startPosHuman, enemy.EnemiesType);
+                    enemy.PathIndex = enemy.Path.Count - 1;
+                    break;
+            }
         }
 
         private void SetStartPoint()
         {
             HumanEnemy.transform.position = _gridController.CurrentGridArray[_startPosHuman.x, _startPosHuman.y].transform.position;
             DogEnemy.transform.position = _gridController.CurrentGridArray[_startPosDog.x, _startPosDog.y].transform.position;
+            _humanLerpPos = HumanEnemy.transform.position;
+            _dogLerpPos = DogEnemy.transform.position;
         }
 
         public Vector3 GetHumanEnemyPosition() => HumanEnemy.transform.position;
@@ -136,14 +158,14 @@ namespace PiggerBomber
             if (HumanEnemy.IsDirty)
                 return;
 
-            var startPosX = HumanEnemy.Path[HumanEnemy.PathIndex].GetComponent<GridStatView>().x;
-            var startPosY = HumanEnemy.Path[HumanEnemy.PathIndex].GetComponent<GridStatView>().y;
+            var startPosX = HumanEnemy.Path[HumanEnemy.PathIndex].GetComponent<HumanGridStat>().X;
+            var startPosY = HumanEnemy.Path[HumanEnemy.PathIndex].GetComponent<HumanGridStat>().Y;
 
             if (seePlayer)
             {
                 _humanSeePlayer = true;
                 HumanEnemy.Path.Clear();
-                HumanEnemy.Path = _gridController.CreateNewPath(startPosX, startPosY, _player.CurrentIndexInArray);
+                HumanEnemy.Path = _gridController.CreateNewPath(startPosX, startPosY, _player.CurrentIndexInArray, HumanEnemy.EnemiesType);
                 HumanEnemy.PathIndex = HumanEnemy.Path.Count - 1;
             }
             else
@@ -158,15 +180,14 @@ namespace PiggerBomber
             if (DogEnemy.IsDirty)
                 return;
 
-            var startPosX = DogEnemy.Path[DogEnemy.PathIndex].GetComponent<GridStatView>().x;
-            var startPosY = DogEnemy.Path[DogEnemy.PathIndex].GetComponent<GridStatView>().y;
+            var startPosX = DogEnemy.Path[DogEnemy.PathIndex].GetComponent<DogGridStat>().X;
+            var startPosY = DogEnemy.Path[DogEnemy.PathIndex].GetComponent<DogGridStat>().Y;
 
             if (seePlayer)
             {
                 _dogSeePlayer = true;
                 DogEnemy.Path.Clear();
-                _gridController.SetDistance(startPosX, startPosY);
-                DogEnemy.Path = _gridController.CreateNewPath(startPosX, startPosY, _player.CurrentIndexInArray);
+                DogEnemy.Path = _gridController.CreateNewPath(startPosX, startPosY, _player.CurrentIndexInArray, DogEnemy.EnemiesType);
                 DogEnemy.PathIndex = DogEnemy.Path.Count - 1;
             }
             else
@@ -176,16 +197,17 @@ namespace PiggerBomber
             }
         }
 
+        public void DirtyWalk(BaseEnemy enemy)
+        {
+            enemy.GetDirty();
+            Vector2Int currentPos = new Vector2Int(
+                   enemy.Path[enemy.PathIndex].gameObject.GetComponent<GridStatBase>().X,
+                   enemy.Path[enemy.PathIndex].gameObject.GetComponent<GridStatBase>().Y);
+            DirtWalkToStartPoint(currentPos.x, currentPos.y, enemy);
+        }
+
         private void HumanEnemyMoving()
         {
-            if (HumanEnemy.IsDirty)
-            {
-                HumanEnemy.Path.Clear();
-                HumanEnemy.transform.position = _gridController.CurrentGridArray[_startPosHuman.x, _startPosHuman.y].transform.position;
-                RandomPointToWalk(_startPosHuman.x, _startPosHuman.y, HumanEnemy);
-                HumanEnemy.IsDirty = false;
-            }
-
             var distance = Vector3.Distance(_player.transform.position, HumanEnemy.transform.position);
 
             if (distance <= _distance && _humanSeePlayer)
@@ -198,8 +220,8 @@ namespace PiggerBomber
             else if (HumanEnemy.PathIndex == 0)
             {
                 RandomPointToWalk(
-                    HumanEnemy.Path[0].gameObject.GetComponent<GridStatView>().x,
-                    HumanEnemy.Path[0].gameObject.GetComponent<GridStatView>().y,
+                    HumanEnemy.Path[0].gameObject.GetComponent<HumanGridStat>().X,
+                    HumanEnemy.Path[0].gameObject.GetComponent<HumanGridStat>().Y,
                     HumanEnemy);
                 HumanEnemy.ResetAllValues();
             }
@@ -211,14 +233,6 @@ namespace PiggerBomber
 
         private void DogEnemyMoving()
         {
-            if (DogEnemy.IsDirty)
-            {
-                DogEnemy.Path.Clear();
-                DogEnemy.transform.position = _gridController.CurrentGridArray[_startPosHuman.x, _startPosHuman.y].transform.position;
-                RandomPointToWalk(_startPosDog.x, _startPosDog.y, DogEnemy);
-                DogEnemy.IsDirty = false;
-            }
-
             var distance = Vector3.Distance(_player.transform.position, DogEnemy.transform.position);
 
             if (distance <= _distance && _dogSeePlayer)
@@ -231,8 +245,8 @@ namespace PiggerBomber
             else if (DogEnemy.PathIndex == 0)
             {
                 RandomPointToWalk(
-                     DogEnemy.Path[0].gameObject.GetComponent<GridStatView>().x,
-                     DogEnemy.Path[0].gameObject.GetComponent<GridStatView>().y,
+                     DogEnemy.Path[0].gameObject.GetComponent<DogGridStat>().X,
+                     DogEnemy.Path[0].gameObject.GetComponent<DogGridStat>().Y,
                      DogEnemy);
                 DogEnemy.ResetAllValues();
             }
@@ -253,7 +267,7 @@ namespace PiggerBomber
             enemy.transform.position = Vector3.Lerp(starLerptPos, targetPos, percentageComplete);
             if (timer >= 1)
             {
-                enemy.SetSprites(GetSpriteDirection(path, enemy.PathIndex));
+                enemy.SetSprites(GetSpriteDirection(path, enemy.PathIndex, enemy.EnemiesType));
                 enemy.transform.position = targetPos;
                 enemy.PathIndex--;
                 enemy.IsMoving = false;
@@ -261,22 +275,39 @@ namespace PiggerBomber
             }
         }
 
-        private Directions GetSpriteDirection(List<GameObject> path, int index)
+        private Directions GetSpriteDirection(List<GameObject> path, int index, EnemiesType enemiesType)
         {
-            if (index < 0 || path.Count == 0)
-                return Directions.Left;
+            switch (enemiesType)
+            {
+                case EnemiesType.Dog:
+                    if (index < 0 || path.Count == 0)
+                        return Directions.Left;
 
-            if (path[index].gameObject.GetComponent<GridStatView>().x < path[index - 1].gameObject.GetComponent<GridStatView>().x)
-                return Directions.Right;
-            if (path[index].gameObject.GetComponent<GridStatView>().x > path[index - 1].gameObject.GetComponent<GridStatView>().x)
-                return Directions.Left;
-            if (path[index].gameObject.GetComponent<GridStatView>().y > path[index - 1].gameObject.GetComponent<GridStatView>().y)
-                return Directions.Down;
-            if (path[index].gameObject.GetComponent<GridStatView>().y < path[index - 1].gameObject.GetComponent<GridStatView>().y)
-                return Directions.Up;
+                    if (path[index].gameObject.GetComponent<DogGridStat>().X < path[index - 1].gameObject.GetComponent<DogGridStat>().X)
+                        return Directions.Right;            
+                    if (path[index].gameObject.GetComponent<DogGridStat>().X > path[index - 1].gameObject.GetComponent<DogGridStat>().X)
+                        return Directions.Left;          
+                    if (path[index].gameObject.GetComponent<DogGridStat>().Y > path[index - 1].gameObject.GetComponent<DogGridStat>().Y)
+                        return Directions.Down;            
+                    if (path[index].gameObject.GetComponent<DogGridStat>().Y < path[index - 1].gameObject.GetComponent<DogGridStat>().Y)
+                        return Directions.Up;
+                    break;
+                case EnemiesType.Human:
+                    if (index < 0 || path.Count == 0)
+                        return Directions.Left;
 
+                    if (path[index].gameObject.GetComponent<HumanGridStat>().X < path[index - 1].gameObject.GetComponent<HumanGridStat>().X)
+                        return Directions.Right;
+                    if (path[index].gameObject.GetComponent<HumanGridStat>().X > path[index - 1].gameObject.GetComponent<HumanGridStat>().X)
+                        return Directions.Left;
+                    if (path[index].gameObject.GetComponent<HumanGridStat>().Y > path[index - 1].gameObject.GetComponent<HumanGridStat>().Y)
+                        return Directions.Down;
+                    if (path[index].gameObject.GetComponent<HumanGridStat>().Y < path[index - 1].gameObject.GetComponent<HumanGridStat>().Y)
+                        return Directions.Up;
+                    break;
+            }
             return default;
-        } 
+        }
         #endregion
     }
 }

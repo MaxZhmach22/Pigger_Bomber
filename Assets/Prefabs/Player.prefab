@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1270366806550267749}
   - component: {fileID: 1270366806550267750}
   - component: {fileID: 2071365554}
-  - component: {fileID: 2071365553}
+  - component: {fileID: 1834894628}
   m_Layer: 0
   m_Name: pig_0
   m_TagString: Player
@@ -72,7 +72,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 5
+  m_SortingOrder: 6
   m_Sprite: {fileID: -5792511334730316588, guid: 299368bb189be4646b1c534540f262ee, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -105,7 +105,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!61 &2071365553
+--- !u!61 &1834894628
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -115,14 +115,14 @@ BoxCollider2D:
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
+    oldSize: {x: 1.3333334, y: 1.3333334}
     newSize: {x: 1.5649203, y: 1.143508}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -158,7 +158,7 @@ Transform:
   m_GameObject: {fileID: 1270366807348207119}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.101, y: 1.4, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1270366806550267749}
   m_Father: {fileID: 0}
@@ -181,6 +181,7 @@ MonoBehaviour:
   - {fileID: -5792511334730316588, guid: 299368bb189be4646b1c534540f262ee, type: 3}
   - {fileID: 40422208409524962, guid: 299368bb189be4646b1c534540f262ee, type: 3}
   - {fileID: 1382654831687872026, guid: 299368bb189be4646b1c534540f262ee, type: 3}
+  <PlayerMovementSpeed>k__BackingField: 1.5
 --- !u!114 &1270366807348207118
 MonoBehaviour:
   m_ObjectHideFlags: 0

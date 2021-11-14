@@ -5,6 +5,7 @@ namespace PiggerBomber
 {
     internal abstract class BaseEnemy : MonoBehaviour
     {
+
         [field: Header("Sprites settings:")]
         [field: SerializeField] public List<Sprite> CommonSpites { get; private set; }
         [field: SerializeField] public List<Sprite> AngrySprites { get; private set; }
@@ -21,6 +22,7 @@ namespace PiggerBomber
         protected Collider2D _collider;
         protected Directions _currentDirection;
 
+        public abstract EnemiesType EnemiesType { get; }
         public abstract bool IsMoving { get; set; }
         public abstract List<GameObject> Path { get; set; }
         public abstract int PathIndex { get; set; }
